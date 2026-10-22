@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { Heart, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
-import { useWishlist } from '@/contexts/WishlistContext';
-import { useCart } from '@/contexts/CartContext';
-import { useQuery } from '@tanstack/react-query';
-import { productsApi, type ProductItem } from '@/lib/api/products';
-import { formatTaka } from '@/components/storefront/types';
-import { toast } from 'sonner';
+import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, Heart, ShoppingBag, Trash2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { toast } from "sonner";
+import { formatTaka } from "@/components/storefront/types";
+import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { type ProductItem, productsApi } from "@/lib/api/products";
 
 export function AccountWishlist() {
   const { wishlistIds, removeFromWishlist } = useWishlist();
   const { addItem } = useCart();
 
   const { data: productsResponse } = useQuery({
-    queryKey: ['products'],
+    queryKey: ["products"],
     queryFn: () => productsApi.list(),
   });
 
@@ -36,7 +36,10 @@ export function AccountWishlist() {
   };
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8" aria-labelledby="wishlist-heading">
+    <section
+      className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8"
+      aria-labelledby="wishlist-heading"
+    >
       <div className="border-b border-slate-100 pb-5">
         <p className="text-xs font-bold uppercase tracking-wider text-brand-700">Saved Items</p>
         <h1 id="wishlist-heading" className="mt-1 text-2xl font-black text-slate-900">
@@ -50,14 +53,19 @@ export function AccountWishlist() {
       {wishedProducts.length ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {wishedProducts.map((product) => {
-            const image = product.images?.[0] || product.imageUrl || '/images/homedecor.jpeg';
+            const image = product.images?.[0] || product.imageUrl || "/images/homedecor.jpeg";
             return (
               <div
                 key={product.id}
                 className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-3.5 transition hover:shadow-md"
               >
                 <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-100">
-                  <Image src={image} alt={product.name} fill className="object-cover transition-transform group-hover:scale-105" />
+                  <Image
+                    src={image}
+                    alt={product.name}
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                  />
                   <button
                     type="button"
                     onClick={() => removeFromWishlist(product.id)}

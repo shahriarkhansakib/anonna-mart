@@ -22,8 +22,7 @@ export interface OrderReturnItem {
 }
 
 export const returnsApi = {
-  list: () =>
-    apiFetch<{ success: boolean; data: OrderReturnItem[] }>("/api/returns"),
+  list: () => apiFetch<{ success: boolean; data: OrderReturnItem[] }>("/api/returns"),
 
   create: (data: Partial<OrderReturnItem> & Record<string, any>) =>
     apiFetch<{ success: boolean; data: OrderReturnItem }>("/api/returns", {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense, useState } from "react";
@@ -62,21 +62,29 @@ function ResetPasswordForm() {
 
   return (
     <div className="rounded-2xl border border-border bg-card p-7 sm:p-9 shadow-xl text-card-foreground transition-all">
-      <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Security</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+        Security
+      </p>
       <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground">Set new password</h1>
       <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
         Choose a strong password with at least 8 characters.
       </p>
 
       {errorMsg && (
-        <div role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive font-medium">
+        <div
+          role="alert"
+          className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive font-medium"
+        >
           {errorMsg}
         </div>
       )}
 
       <form noValidate onSubmit={handleReset} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="reset-new-password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80">
+          <label
+            htmlFor="reset-new-password"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80"
+          >
             New password
           </label>
           <div className="relative">
@@ -97,13 +105,20 @@ function ResetPasswordForm() {
               onClick={() => setShowPassword((curr) => !curr)}
               className="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
-              {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>
 
         <div>
-          <label htmlFor="reset-confirm-password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80">
+          <label
+            htmlFor="reset-confirm-password"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80"
+          >
             Confirm new password
           </label>
           <input
@@ -129,7 +144,10 @@ function ResetPasswordForm() {
       </form>
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
-        <Link href="/sign-in" className="font-semibold text-emerald-600 dark:text-emerald-400 underline-offset-4 hover:underline">
+        <Link
+          href="/sign-in"
+          className="font-semibold text-emerald-600 dark:text-emerald-400 underline-offset-4 hover:underline"
+        >
           &larr; Back to sign in
         </Link>
       </p>
@@ -160,7 +178,9 @@ export default function ResetPasswordPage() {
 
       <main className="flex-1 flex items-center justify-center p-4 py-8 sm:py-12">
         <div className="w-full max-w-md">
-          <Suspense fallback={<div className="text-center text-muted-foreground text-sm">Loading…</div>}>
+          <Suspense
+            fallback={<div className="text-center text-muted-foreground text-sm">Loading…</div>}
+          >
             <ResetPasswordForm />
           </Suspense>
         </div>

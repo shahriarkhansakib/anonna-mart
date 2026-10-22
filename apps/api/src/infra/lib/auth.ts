@@ -39,7 +39,10 @@ export async function sendSmartEmail(to: string, subject: string, html: string) 
       });
       logger.info({ to, subject }, "[Mailpit] Intercepted outgoing store email");
     } catch (err: any) {
-      logger.warn({ err: err.message }, "[Mailpit] Local SMTP delivery skipped, check Docker Mailpit");
+      logger.warn(
+        { err: err.message },
+        "[Mailpit] Local SMTP delivery skipped, check Docker Mailpit",
+      );
     }
   } else {
     try {

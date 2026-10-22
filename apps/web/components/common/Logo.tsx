@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import Image from "next/image";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface LogoProps {
   width?: number;
@@ -10,26 +10,26 @@ interface LogoProps {
   className?: string;
   imageClassName?: string;
   href?: string | null;
-  variant?: 'wordmark' | 'contained' | 'raw';
+  variant?: "wordmark" | "contained" | "raw";
 }
 
-const logoAlt = 'অনন্যা MART - আপনার পছন্দ, আমাদের যত্ন';
+const logoAlt = "অনন্যা MART - আপনার পছন্দ, আমাদের যত্ন";
 
 export function Logo({
   width = 110,
   height = 36,
   className,
   imageClassName,
-  href = '/',
-  variant = 'wordmark',
+  href = "/",
+  variant = "wordmark",
 }: LogoProps) {
   const content = (
     <div
       className={cn(
-        variant === 'raw'
-          ? 'relative inline-flex items-center'
-          : 'relative inline-flex items-center justify-center rounded-lg bg-[#FCFBF6] px-2.5 py-1 border border-black/10 shadow-xs transition-all duration-200 hover:shadow-sm dark:bg-white dark:border-white/10',
-        className
+        variant === "raw"
+          ? "relative inline-flex items-center"
+          : "relative inline-flex items-center justify-center rounded-lg bg-[#FCFBF6] px-2.5 py-1 border border-black/10 shadow-xs transition-all duration-200 hover:shadow-sm dark:bg-white dark:border-white/10",
+        className,
       )}
     >
       <Image

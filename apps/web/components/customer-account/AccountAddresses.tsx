@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect, type FormEvent } from 'react';
-import { MapPin, Plus, Trash2, X, Check } from 'lucide-react';
-import { useSession } from '@/lib/auth-client';
-import { toast } from 'sonner';
+import { Check, MapPin, Plus, Trash2, X } from "lucide-react";
+import { type FormEvent, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
 
 export interface SavedAddress {
   id: string;
@@ -14,7 +14,7 @@ export interface SavedAddress {
   isDefault: boolean;
 }
 
-const STORAGE_KEY = 'anonna_customer_addresses';
+const STORAGE_KEY = "anonna_customer_addresses";
 
 export function AccountAddresses() {
   const sessionResult = useSession() as any;
@@ -23,10 +23,10 @@ export function AccountAddresses() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [label, setLabel] = useState('Home');
-  const [recipient, setRecipient] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [label, setLabel] = useState("Home");
+  const [recipient, setRecipient] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [isDefault, setIsDefault] = useState(false);
 
   useEffect(() => {
@@ -37,11 +37,11 @@ export function AccountAddresses() {
       } else if (user) {
         const initial = [
           {
-            id: 'addr-1',
-            label: 'Home',
-            recipient: user.name || 'Customer',
-            phone: '017XXXXXXXX',
-            address: 'House 12, Road 5, Dhanmondi, Dhaka',
+            id: "addr-1",
+            label: "Home",
+            recipient: user.name || "Customer",
+            phone: "017XXXXXXXX",
+            address: "House 12, Road 5, Dhanmondi, Dhaka",
             isDefault: true,
           },
         ];
@@ -64,10 +64,10 @@ export function AccountAddresses() {
 
   const startAdd = () => {
     setEditingId(null);
-    setLabel('Home');
-    setRecipient(user?.name || '');
-    setPhone('');
-    setAddress('');
+    setLabel("Home");
+    setRecipient(user?.name || "");
+    setPhone("");
+    setAddress("");
     setIsDefault(addresses.length === 0);
     setFormOpen(true);
   };
@@ -75,7 +75,7 @@ export function AccountAddresses() {
   const submitAddress = (e: FormEvent) => {
     e.preventDefault();
     if (!recipient.trim() || !address.trim() || !phone.trim()) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
@@ -100,7 +100,7 @@ export function AccountAddresses() {
     }
 
     saveToStorage(updated);
-    toast.success(editingId ? 'Address updated' : 'Address saved');
+    toast.success(editingId ? "Address updated" : "Address saved");
     setFormOpen(false);
   };
 
@@ -110,20 +110,25 @@ export function AccountAddresses() {
       updated[0].isDefault = true;
     }
     saveToStorage(updated);
-    toast.success('Address removed');
+    toast.success("Address removed");
   };
 
   const setDefault = (id: string) => {
     const updated = addresses.map((a) => ({ ...a, isDefault: a.id === id }));
     saveToStorage(updated);
-    toast.success('Default address updated');
+    toast.success("Default address updated");
   };
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8" aria-labelledby="addresses-heading">
+    <section
+      className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8"
+      aria-labelledby="addresses-heading"
+    >
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-brand-700">Delivery Preferences</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-brand-700">
+            Delivery Preferences
+          </p>
           <h1 id="addresses-heading" className="mt-1 text-2xl font-black text-slate-900">
             Saved Delivery Addresses
           </h1>
@@ -142,17 +147,28 @@ export function AccountAddresses() {
       </div>
 
       {formOpen && (
-        <form onSubmit={submitAddress} className="mt-6 rounded-2xl bg-slate-50 border border-slate-200 p-5 space-y-4">
+        <form
+          onSubmit={submitAddress}
+          className="mt-6 rounded-2xl bg-slate-50 border border-slate-200 p-5 space-y-4"
+        >
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-900">{editingId ? 'Edit Address' : 'New Address'}</h2>
-            <button type="button" onClick={() => setFormOpen(false)} className="text-slate-400 hover:text-slate-600">
+            <h2 className="text-sm font-bold text-slate-900">
+              {editingId ? "Edit Address" : "New Address"}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setFormOpen(false)}
+              className="text-slate-400 hover:text-slate-600"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Label (e.g. Home, Office)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Label (e.g. Home, Office)
+              </label>
               <input
                 required
                 value={label}
@@ -161,7 +177,9 @@ export function AccountAddresses() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Recipient Name *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Recipient Name *
+              </label>
               <input
                 required
                 value={recipient}
@@ -179,7 +197,9 @@ export function AccountAddresses() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 mb-1">Street Address *</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                Street Address *
+              </label>
               <textarea
                 required
                 rows={2}
@@ -198,7 +218,9 @@ export function AccountAddresses() {
               onChange={(e) => setIsDefault(e.target.checked)}
               className="rounded text-brand-900 focus:ring-brand-700"
             />
-            <label htmlFor="isDefault" className="text-xs text-slate-700">Set as default delivery address</label>
+            <label htmlFor="isDefault" className="text-xs text-slate-700">
+              Set as default delivery address
+            </label>
           </div>
 
           <div className="flex gap-2">
@@ -224,7 +246,7 @@ export function AccountAddresses() {
           <div
             key={item.id}
             className={`rounded-2xl border p-5 transition-all ${
-              item.isDefault ? 'border-brand-900 bg-brand-50/20' : 'border-slate-200 bg-white'
+              item.isDefault ? "border-brand-900 bg-brand-50/20" : "border-slate-200 bg-white"
             }`}
           >
             <div className="flex items-center justify-between">

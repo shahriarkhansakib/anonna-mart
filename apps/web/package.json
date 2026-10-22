@@ -6,7 +6,8 @@
     "dev": "next dev --port 5003",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint"
   },
   "dependencies": {
     "@growmate/api": "workspace:*",
@@ -62,6 +63,8 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.5.0",
+    "eslint": "9.0.0",
+    "eslint-config-next": "15.0.0",
     "pino-pretty": "^13.2.0",
     "postcss": "^8.5.12",
     "tailwindcss": "^4.2.4",

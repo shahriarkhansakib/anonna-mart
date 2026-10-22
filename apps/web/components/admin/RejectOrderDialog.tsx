@@ -68,9 +68,7 @@ export const RejectOrderDialog = ({ isOpen, onClose, order }: RejectOrderDialogP
             <XCircle className="h-5 w-5 text-destructive" />
             Reject Order
           </DialogTitle>
-          <DialogDescription>
-            Please provide a reason for rejecting this order.
-          </DialogDescription>
+          <DialogDescription>Please provide a reason for rejecting this order.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">

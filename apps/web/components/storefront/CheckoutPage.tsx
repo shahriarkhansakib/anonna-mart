@@ -1,49 +1,44 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Check,
+  CheckCircle,
   ChevronRight,
   CreditCard,
+  Loader2,
   LockKeyhole,
   MapPin,
   PackageCheck,
   ShieldCheck,
   Tag,
   Truck,
-  Loader2,
-  CheckCircle,
-} from 'lucide-react';
-import { useSession } from '@/lib/auth-client';
-import { useCart } from '@/contexts/CartContext';
-import { Logo } from '@/components/common/Logo';
-import { ThemeToggle } from '@/components/common/ThemeToggle';
-import { formatTaka } from './types';
-import { ordersApi } from '@/lib/api/orders';
-import { deliveryZonesApi, type DeliveryZoneItem } from '@/lib/api/delivery-zones';
-import { couponsApi } from '@/lib/api/coupons';
-import { useQuery } from '@tanstack/react-query';
-import { toast } from 'sonner';
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Logo } from "@/components/common/Logo";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { useCart } from "@/contexts/CartContext";
+import { couponsApi } from "@/lib/api/coupons";
+import { type DeliveryZoneItem, deliveryZonesApi } from "@/lib/api/delivery-zones";
+import { ordersApi } from "@/lib/api/orders";
+import { useSession } from "@/lib/auth-client";
+import { formatTaka } from "./types";
 
 const inputClass =
-  'min-h-12 w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20';
+  "min-h-12 w-full rounded-xl border border-input bg-card px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground transition focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20";
 
-function Field({
-  id,
-  label,
-  children,
-}: {
-  id: string;
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+      <label
+        htmlFor={id}
+        className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700"
+      >
         {label}
       </label>
       {children}
@@ -58,46 +53,66 @@ export function CheckoutPage() {
   const { items: cartItems, subtotal, clearCart } = useCart();
 
   // Contact & Delivery State
-  const [recipient, setRecipient] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [selectedZoneId, setSelectedZoneId] = useState('zone-dhaka');
-  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'bkash' | 'card'>('cod');
+  const [recipient, setRecipient] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [selectedZoneId, setSelectedZoneId] = useState("zone-dhaka");
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "bkash" | "card">("cod");
 
   // Coupon State
-  const [promoInput, setPromoInput] = useState('');
+  const [promoInput, setPromoInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
     discountAmount: number;
     discountType: string;
   } | null>(null);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-  const [promoMessage, setPromoMessage] = useState('');
+  const [promoMessage, setPromoMessage] = useState("");
   const [promoError, setPromoError] = useState(false);
 
   // Submission State
-  const [submitError, setSubmitError] = useState('');
+  const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<any | null>(null);
 
   // Fetch Delivery Zones
   const { data: zonesResponse } = useQuery({
-    queryKey: ['delivery-zones'],
+    queryKey: ["delivery-zones"],
     queryFn: () => deliveryZonesApi.list(),
   });
 
   const deliveryZones: DeliveryZoneItem[] = useMemo(() => {
-    return zonesResponse?.data || [
-      { id: 'zone-dhaka', name: 'Inside Dhaka', district: 'Dhaka', standardFee: 60, isActive: true },
-      { id: 'zone-sub-dhaka', name: 'Dhaka Suburbs', district: 'Dhaka Sub', standardFee: 100, isActive: true },
-      { id: 'zone-nationwide', name: 'Nationwide (Outside Dhaka)', district: 'All BD', standardFee: 150, isActive: true },
-    ];
+    return (
+      zonesResponse?.data || [
+        {
+          id: "zone-dhaka",
+          name: "Inside Dhaka",
+          district: "Dhaka",
+          standardFee: 60,
+          isActive: true,
+        },
+        {
+          id: "zone-sub-dhaka",
+          name: "Dhaka Suburbs",
+          district: "Dhaka Sub",
+          standardFee: 100,
+          isActive: true,
+        },
+        {
+          id: "zone-nationwide",
+          name: "Nationwide (Outside Dhaka)",
+          district: "All BD",
+          standardFee: 150,
+          isActive: true,
+        },
+      ]
+    );
   }, [zonesResponse]);
 
   const selectedZone = useMemo(
     () => deliveryZones.find((z) => z.id === selectedZoneId) || deliveryZones[0],
-    [deliveryZones, selectedZoneId]
+    [deliveryZones, selectedZoneId],
   );
 
   const shippingFee = selectedZone ? Number(selectedZone.standardFee || 60) : 60;
@@ -116,27 +131,29 @@ export function CheckoutPage() {
     const code = promoInput.trim().toUpperCase();
     if (!code) {
       setPromoError(true);
-      setPromoMessage('Please enter a coupon code.');
+      setPromoMessage("Please enter a coupon code.");
       return;
     }
 
     setIsApplyingPromo(true);
     setPromoError(false);
-    setPromoMessage('');
+    setPromoMessage("");
 
     try {
       const res = await couponsApi.validate(code, subtotal);
       if (res?.success && res?.data) {
         setAppliedCoupon(res.data);
-        setPromoMessage(`Coupon "${code}" applied successfully! You saved ${formatTaka(res.data.discountAmount)}.`);
+        setPromoMessage(
+          `Coupon "${code}" applied successfully! You saved ${formatTaka(res.data.discountAmount)}.`,
+        );
         toast.success(`Coupon ${code} applied`);
       } else {
         setPromoError(true);
-        setPromoMessage('This coupon is invalid or conditions were not met.');
+        setPromoMessage("This coupon is invalid or conditions were not met.");
       }
     } catch (err: any) {
       setPromoError(true);
-      setPromoMessage(err?.message || 'Failed to validate coupon.');
+      setPromoMessage(err?.message || "Failed to validate coupon.");
     } finally {
       setIsApplyingPromo(false);
     }
@@ -144,20 +161,20 @@ export function CheckoutPage() {
 
   const removePromoCode = () => {
     setAppliedCoupon(null);
-    setPromoInput('');
-    setPromoMessage('');
+    setPromoInput("");
+    setPromoMessage("");
   };
 
   const submitOrder = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSubmitError('');
+    setSubmitError("");
 
     if (!cartItems.length) {
-      setSubmitError('Your cart is empty. Add products before placing an order.');
+      setSubmitError("Your cart is empty. Add products before placing an order.");
       return;
     }
     if (!recipient.trim() || !deliveryAddress.trim() || !phone.trim()) {
-      setSubmitError('Please complete your recipient name, phone number, and delivery address.');
+      setSubmitError("Please complete your recipient name, phone number, and delivery address.");
       return;
     }
 
@@ -166,7 +183,7 @@ export function CheckoutPage() {
     try {
       const orderPayload = {
         customerName: recipient.trim(),
-        customerEmail: email.trim() || 'customer@anonnamart.com',
+        customerEmail: email.trim() || "customer@anonnamart.com",
         customerPhone: phone.trim(),
         shippingAddress: deliveryAddress.trim(),
         deliveryZoneId: selectedZoneId,
@@ -180,23 +197,28 @@ export function CheckoutPage() {
         shippingFee,
         discountAmount,
         totalAmount,
-        paymentMethod: paymentMethod === 'cod' ? 'Cash on Delivery' : paymentMethod === 'bkash' ? 'bKash' : 'Card',
-        paymentStatus: 'pending',
+        paymentMethod:
+          paymentMethod === "cod"
+            ? "Cash on Delivery"
+            : paymentMethod === "bkash"
+              ? "bKash"
+              : "Card",
+        paymentStatus: "pending",
         couponCode: appliedCoupon?.code || null,
-        notes: `Selected Zone: ${selectedZone?.name || 'Dhaka'}`,
+        notes: `Selected Zone: ${selectedZone?.name || "Dhaka"}`,
       };
 
       const res = await ordersApi.create(orderPayload);
       if (res?.success && res?.data) {
         setConfirmedOrder(res.data);
         clearCart();
-        toast.success('Order placed successfully!');
+        toast.success("Order placed successfully!");
       } else {
-        throw new Error('Could not create order. Please try again.');
+        throw new Error("Could not create order. Please try again.");
       }
     } catch (err: any) {
-      setSubmitError(err?.message || 'Failed to place order. Please try again.');
-      toast.error('Failed to place order');
+      setSubmitError(err?.message || "Failed to place order. Please try again.");
+      toast.error("Failed to place order");
     } finally {
       setIsSubmitting(false);
     }
@@ -212,7 +234,8 @@ export function CheckoutPage() {
           </div>
           <h1 className="mt-4 text-2xl font-black text-slate-900 sm:text-3xl">Order Confirmed!</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Thank you for shopping with Anonna Mart. We have received your order and our fulfillment team is preparing it for shipment.
+            Thank you for shopping with Anonna Mart. We have received your order and our fulfillment
+            team is preparing it for shipment.
           </p>
 
           <div className="mt-6 rounded-2xl bg-slate-50 p-4 border border-slate-100 text-left space-y-2">
@@ -224,7 +247,9 @@ export function CheckoutPage() {
             </div>
             <div className="flex justify-between text-xs sm:text-sm">
               <span className="text-slate-500 font-medium">Recipient:</span>
-              <span className="font-semibold text-slate-900">{confirmedOrder.customerName || recipient}</span>
+              <span className="font-semibold text-slate-900">
+                {confirmedOrder.customerName || recipient}
+              </span>
             </div>
             <div className="flex justify-between text-xs sm:text-sm">
               <span className="text-slate-500 font-medium">Delivery Address:</span>
@@ -238,11 +263,15 @@ export function CheckoutPage() {
             </div>
             <div className="flex justify-between text-xs sm:text-sm">
               <span className="text-slate-500 font-medium">Payment Mode:</span>
-              <span className="font-semibold text-emerald-800">{confirmedOrder.paymentMethod || 'Cash on Delivery'}</span>
+              <span className="font-semibold text-emerald-800">
+                {confirmedOrder.paymentMethod || "Cash on Delivery"}
+              </span>
             </div>
             <div className="border-t border-slate-200 pt-2 flex justify-between text-sm sm:text-base font-bold">
               <span>Total Payable:</span>
-              <span className="text-brand-950 font-black">{formatTaka(confirmedOrder.totalAmount || totalAmount)}</span>
+              <span className="text-brand-950 font-black">
+                {formatTaka(confirmedOrder.totalAmount || totalAmount)}
+              </span>
             </div>
           </div>
 
@@ -282,10 +311,15 @@ export function CheckoutPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
         <div className="mb-6">
-          <Link href="/products" className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground">
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4" /> Continue Shopping
           </Link>
-          <h1 className="mt-2 text-2xl font-black text-foreground sm:text-3xl">Checkout & Order Placement</h1>
+          <h1 className="mt-2 text-2xl font-black text-foreground sm:text-3xl">
+            Checkout & Order Placement
+          </h1>
         </div>
 
         {submitError && (
@@ -372,8 +406,8 @@ export function CheckoutPage() {
                       onClick={() => setSelectedZoneId(zone.id)}
                       className={`flex flex-col justify-between rounded-2xl border p-4 text-left transition-all ${
                         selected
-                          ? 'border-brand-900 bg-brand-50/50 ring-2 ring-brand-900/15'
-                          : 'border-border bg-card text-card-foreground hover:border-slate-300'
+                          ? "border-brand-900 bg-brand-50/50 ring-2 ring-brand-900/15"
+                          : "border-border bg-card text-card-foreground hover:border-slate-300"
                       }`}
                     >
                       <div>
@@ -382,7 +416,9 @@ export function CheckoutPage() {
                           {selected && <Check className="h-4 w-4 text-brand-800" />}
                         </div>
                         <span className="mt-1 text-[11px] text-slate-500">
-                          {zone.estimatedDeliveryHours ? `Within ${zone.estimatedDeliveryHours} hrs` : '24-72 hours'}
+                          {zone.estimatedDeliveryHours
+                            ? `Within ${zone.estimatedDeliveryHours} hrs`
+                            : "24-72 hours"}
                         </span>
                       </div>
                       <span className="mt-3 text-sm font-black text-brand-950">
@@ -403,37 +439,45 @@ export function CheckoutPage() {
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('cod')}
+                  onClick={() => setPaymentMethod("cod")}
                   className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-all ${
-                    paymentMethod === 'cod'
-                      ? 'border-brand-900 bg-brand-50/50 ring-2 ring-brand-900/15'
-                      : 'border-border bg-card text-card-foreground hover:border-slate-300'
+                    paymentMethod === "cod"
+                      ? "border-brand-900 bg-brand-50/50 ring-2 ring-brand-900/15"
+                      : "border-border bg-card text-card-foreground hover:border-slate-300"
                   }`}
                 >
-                  <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border ${paymentMethod === 'cod' ? 'border-brand-900 bg-brand-900 text-white' : 'border-slate-300'}`}>
-                    {paymentMethod === 'cod' && <Check className="h-3 w-3" />}
+                  <div
+                    className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border ${paymentMethod === "cod" ? "border-brand-900 bg-brand-900 text-white" : "border-slate-300"}`}
+                  >
+                    {paymentMethod === "cod" && <Check className="h-3 w-3" />}
                   </div>
                   <div>
                     <span className="text-xs font-bold text-slate-900">Cash on Delivery (COD)</span>
-                    <p className="mt-0.5 text-[11px] text-slate-500">Pay cash upon receiving the parcel from the courier.</p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      Pay cash upon receiving the parcel from the courier.
+                    </p>
                   </div>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setPaymentMethod('bkash')}
+                  onClick={() => setPaymentMethod("bkash")}
                   className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition-all ${
-                    paymentMethod === 'bkash'
-                      ? 'border-brand-900 bg-brand-50/50 ring-2 ring-brand-900/15'
-                      : 'border-border bg-card text-card-foreground hover:border-slate-300'
+                    paymentMethod === "bkash"
+                      ? "border-brand-900 bg-brand-50/50 ring-2 ring-brand-900/15"
+                      : "border-border bg-card text-card-foreground hover:border-slate-300"
                   }`}
                 >
-                  <div className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border ${paymentMethod === 'bkash' ? 'border-brand-900 bg-brand-900 text-white' : 'border-slate-300'}`}>
-                    {paymentMethod === 'bkash' && <Check className="h-3 w-3" />}
+                  <div
+                    className={`mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border ${paymentMethod === "bkash" ? "border-brand-900 bg-brand-900 text-white" : "border-slate-300"}`}
+                  >
+                    {paymentMethod === "bkash" && <Check className="h-3 w-3" />}
                   </div>
                   <div>
                     <span className="text-xs font-bold text-slate-900">bKash / Mobile Banking</span>
-                    <p className="mt-0.5 text-[11px] text-slate-500">Send Money / Merchant Payment option available.</p>
+                    <p className="mt-0.5 text-[11px] text-slate-500">
+                      Send Money / Merchant Payment option available.
+                    </p>
                   </div>
                 </button>
               </div>
@@ -458,14 +502,16 @@ export function CheckoutPage() {
           {/* Right Summary Column */}
           <div className="space-y-6">
             <div className="rounded-3xl border border-border bg-card text-card-foreground p-6 shadow-xs sm:p-8">
-              <h2 className="text-base font-black text-slate-900">Order Summary ({cartItems.length} items)</h2>
+              <h2 className="text-base font-black text-slate-900">
+                Order Summary ({cartItems.length} items)
+              </h2>
 
               <ul className="mt-4 divide-y divide-slate-100 max-h-72 overflow-y-auto pr-1">
                 {cartItems.map((item) => (
                   <li key={item.id} className="flex gap-3 py-3">
                     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100 border">
                       <Image
-                        src={item.image || '/images/homedecor.jpeg'}
+                        src={item.image || "/images/homedecor.jpeg"}
                         alt={item.name}
                         fill
                         className="object-cover"
@@ -474,7 +520,9 @@ export function CheckoutPage() {
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-1 text-xs font-bold text-slate-900">{item.name}</p>
                       <p className="text-[11px] text-slate-500">Qty: {item.quantity}</p>
-                      <p className="text-xs font-bold text-brand-900">{formatTaka(item.price * item.quantity)}</p>
+                      <p className="text-xs font-bold text-brand-900">
+                        {formatTaka(item.price * item.quantity)}
+                      </p>
                     </div>
                   </li>
                 ))}
@@ -508,12 +556,14 @@ export function CheckoutPage() {
                       disabled={isApplyingPromo || !promoInput.trim()}
                       className="inline-flex min-h-11 items-center justify-center rounded-xl bg-brand-900 px-4 text-xs font-bold text-white hover:bg-brand-950 disabled:opacity-50"
                     >
-                      {isApplyingPromo ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                      {isApplyingPromo ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
                     </button>
                   )}
                 </div>
                 {promoMessage && (
-                  <p className={`mt-2 text-xs font-semibold ${promoError ? 'text-rose-600' : 'text-emerald-700'}`}>
+                  <p
+                    className={`mt-2 text-xs font-semibold ${promoError ? "text-rose-600" : "text-emerald-700"}`}
+                  >
                     {promoMessage}
                   </p>
                 )}
@@ -547,7 +597,10 @@ export function CheckoutPage() {
                 <ShieldCheck className="h-4 w-4 text-brand-800" />
                 <span>Buyer Protection Guarantee</span>
               </div>
-              <p>We inspect every item before dispatch. If damaged, enjoy free replacement within 7 days.</p>
+              <p>
+                We inspect every item before dispatch. If damaged, enjoy free replacement within 7
+                days.
+              </p>
             </div>
           </div>
         </div>

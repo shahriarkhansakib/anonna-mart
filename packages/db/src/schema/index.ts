@@ -4,10 +4,9 @@ export * from "./coupons";
 export * from "./delivery-zones";
 export * from "./incomplete-orders";
 export * from "./orders";
+export * from "./pbac";
 export * from "./product-categories";
 export * from "./products";
 export * from "./returns";
 export * from "./settings";
 export * from "./support-chat";
-export * from "./pbac";
-

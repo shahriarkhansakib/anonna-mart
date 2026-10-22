@@ -19,7 +19,9 @@ export const cmsApi = {
     if (params?.category && params.category !== "all") sp.set("category", params.category);
     if (params?.published !== undefined) sp.set("published", String(params.published));
     const qs = sp.toString() ? `?${sp.toString()}` : "";
-    return apiFetch<{ success: boolean; data: CMSArticleItem[]; count: number }>(`/api/cms/articles${qs}`);
+    return apiFetch<{ success: boolean; data: CMSArticleItem[]; count: number }>(
+      `/api/cms/articles${qs}`,
+    );
   },
   getArticle: (id: string) =>
     apiFetch<{ success: boolean; data: CMSArticleItem }>(`/api/cms/articles/${id}`),
@@ -38,5 +40,8 @@ export const cmsApi = {
       method: "DELETE",
     }),
   getStats: () =>
-    apiFetch<{ success: boolean; data: { total: number; published: number; drafts: number; featured: number } }>("/api/cms/stats"),
+    apiFetch<{
+      success: boolean;
+      data: { total: number; published: number; drafts: number; featured: number };
+    }>("/api/cms/stats"),
 };

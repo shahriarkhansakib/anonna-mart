@@ -1,8 +1,8 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/common/Logo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
@@ -68,8 +68,12 @@ export default function ForgotPasswordPage() {
       <main className="flex-1 flex items-center justify-center p-4 py-8 sm:py-12">
         <div className="w-full max-w-md">
           <div className="rounded-2xl border border-border bg-card p-7 sm:p-9 shadow-xl text-card-foreground transition-all">
-            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Account help</p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground">Forgot your password?</h1>
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              Account help
+            </p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-foreground">
+              Forgot your password?
+            </h1>
             <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
               {sent
                 ? "We have dispatched a password recovery link to your inbox."
@@ -77,7 +81,10 @@ export default function ForgotPasswordPage() {
             </p>
 
             {errorMsg && (
-              <div role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive font-medium">
+              <div
+                role="alert"
+                className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive font-medium"
+              >
                 {errorMsg}
               </div>
             )}
@@ -85,7 +92,11 @@ export default function ForgotPasswordPage() {
             {sent ? (
               <div className="mt-6 rounded-xl border border-emerald-600/30 bg-emerald-500/10 p-5 text-center space-y-3">
                 <p className="text-sm text-foreground">
-                  A reset link was sent to <strong className="text-emerald-700 dark:text-emerald-300 font-bold">{email}</strong>.
+                  A reset link was sent to{" "}
+                  <strong className="text-emerald-700 dark:text-emerald-300 font-bold">
+                    {email}
+                  </strong>
+                  .
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Didn&apos;t receive the email? Check your spam folder or{" "}
@@ -102,7 +113,10 @@ export default function ForgotPasswordPage() {
             ) : (
               <form noValidate onSubmit={handleSubmit} className="mt-6 space-y-4">
                 <div>
-                  <label htmlFor="forgot-email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80">
+                  <label
+                    htmlFor="forgot-email"
+                    className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80"
+                  >
                     Email address
                   </label>
                   <input
@@ -129,7 +143,10 @@ export default function ForgotPasswordPage() {
             )}
 
             <p className="mt-6 text-center text-xs text-muted-foreground">
-              <Link href="/sign-in" className="font-semibold text-emerald-600 dark:text-emerald-400 underline-offset-4 hover:underline">
+              <Link
+                href="/sign-in"
+                className="font-semibold text-emerald-600 dark:text-emerald-400 underline-offset-4 hover:underline"
+              >
                 &larr; Back to sign in
               </Link>
             </p>

@@ -1,18 +1,19 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowRight, PackageOpen, Loader2 } from 'lucide-react';
-import { formatTaka } from '@/components/storefront/types';
-import { useQuery } from '@tanstack/react-query';
-import { ordersApi, type OrderItem } from '@/lib/api/orders';
+import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, Loader2, PackageOpen } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { formatTaka } from "@/components/storefront/types";
+import { type OrderItem, ordersApi } from "@/lib/api/orders";
 
 function statusClasses(status: string) {
-  const norm = status?.toLowerCase() || '';
-  if (norm === 'delivered') return 'bg-emerald-50 text-emerald-800';
-  if (norm === 'cancelled' || norm === 'rejected') return 'bg-rose-50 text-rose-700';
-  if (norm === 'shipped' || norm === 'in_transit' || norm === 'processing') return 'bg-amber-50 text-amber-800';
-  return 'bg-slate-100 text-slate-700';
+  const norm = status?.toLowerCase() || "";
+  if (norm === "delivered") return "bg-emerald-50 text-emerald-800";
+  if (norm === "cancelled" || norm === "rejected") return "bg-rose-50 text-rose-700";
+  if (norm === "shipped" || norm === "in_transit" || norm === "processing")
+    return "bg-amber-50 text-amber-800";
+  return "bg-slate-100 text-slate-700";
 }
 
 function OrderCard({ order }: { order: OrderItem }) {
@@ -26,20 +27,27 @@ function OrderCard({ order }: { order: OrderItem }) {
         <div>
           <p className="font-mono text-sm font-bold text-slate-900">#{displayId}</p>
           <p className="mt-1 text-xs text-slate-500">
-            Placed {new Date(order.createdAt || order.created_at || Date.now()).toLocaleDateString('en-BD', { dateStyle: 'medium' })}
+            Placed{" "}
+            {new Date(order.createdAt || order.created_at || Date.now()).toLocaleDateString(
+              "en-BD",
+              { dateStyle: "medium" },
+            )}
           </p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${statusClasses(order.status)}`}>
-          {order.status || 'Pending'}
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${statusClasses(order.status)}`}
+        >
+          {order.status || "Pending"}
         </span>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-4">
         <div className="flex items-center gap-3">
           <p className="text-xs font-semibold text-slate-600">
-            {itemsCount} {itemsCount === 1 ? 'item' : 'items'} · <span className="font-bold text-brand-950">{formatTaka(total)}</span>
+            {itemsCount} {itemsCount === 1 ? "item" : "items"} ·{" "}
+            <span className="font-bold text-brand-950">{formatTaka(total)}</span>
           </p>
-          <span className="text-xs text-slate-400">({order.paymentMethod || 'COD'})</span>
+          <span className="text-xs text-slate-400">({order.paymentMethod || "COD"})</span>
         </div>
 
         <Link
@@ -55,7 +63,7 @@ function OrderCard({ order }: { order: OrderItem }) {
 
 export function OrderHistory({ compact = false }: { compact?: boolean }) {
   const { data: ordersResponse, isLoading } = useQuery({
-    queryKey: ['my-orders'],
+    queryKey: ["my-orders"],
     queryFn: () => ordersApi.list(),
   });
 

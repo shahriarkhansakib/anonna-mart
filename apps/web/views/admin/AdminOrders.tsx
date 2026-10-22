@@ -31,9 +31,9 @@ import {
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { InvoicePrintModal } from "@/components/admin/InvoicePrintModal";
 import { FraudAnalysisPanel } from "@/components/admin/FraudAnalysisPanel";
 import { FraudRiskBadge } from "@/components/admin/FraudRiskBadge";
+import { InvoicePrintModal } from "@/components/admin/InvoicePrintModal";
 import { OrderStatsBar } from "@/components/admin/OrderStatsBar";
 import {
   OrderCardsSkeleton,
@@ -1059,9 +1059,7 @@ const AdminOrders = () => {
                                   >
                                     <Eye className="h-4 w-4 mr-2" /> View Details
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    onClick={() => setSelectedInvoiceOrder(order)}
-                                  >
+                                  <DropdownMenuItem onClick={() => setSelectedInvoiceOrder(order)}>
                                     <Printer className="h-4 w-4 mr-2" /> Print Invoice
                                   </DropdownMenuItem>
                                   <DropdownMenuItem

@@ -2,7 +2,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
 const hero = "/auth-hero.jpg";
+
 import { GrowMateMascot } from "@/components/GrowMateMascot";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,7 +80,6 @@ const AuthPage = () => {
       toast.error(error.message || "Google sign in failed");
     }
   };
-
 
   const form = (
     <motion.form

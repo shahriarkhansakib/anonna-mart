@@ -1,5 +1,5 @@
-import Redis from "ioredis";
 import { Redis as UpstashRedis } from "@upstash/redis";
+import Redis from "ioredis";
 import { logger } from "./logger";
 
 /**

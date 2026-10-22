@@ -9,7 +9,6 @@ import type { AdminOrder } from "@/types/database";
 
 export type AppRole = "admin" | "super_admin" | "user";
 
-
 export const useAdmin = () => {
   const { roles, isLoading: roleLoading, isAdmin, isClinicOwner, isDoctor } = useUserRole();
 
@@ -77,10 +76,16 @@ export const useAdminProducts = () => {
           name: p.name,
           description: p.description || "",
           price: Number(p.price) || 0,
-          compare_price: p.compare_price !== undefined ? Number(p.compare_price) : (p.originalPrice !== undefined ? Number(p.originalPrice) : null),
+          compare_price:
+            p.compare_price !== undefined
+              ? Number(p.compare_price)
+              : p.originalPrice !== undefined
+                ? Number(p.originalPrice)
+                : null,
           category: p.category || p.categoryName || "General",
           product_type: p.product_type || p.productType || "Physical",
-          image_url: p.image_url || (Array.isArray(p.images) && p.images[0]) || "/growmate-mascot.png",
+          image_url:
+            p.image_url || (Array.isArray(p.images) && p.images[0]) || "/growmate-mascot.png",
           images: p.images || [],
           stock: p.stock !== undefined ? Number(p.stock) : Number(p.stockQuantity || 0),
           badge: p.badge || null,
@@ -99,7 +104,11 @@ export const useAdminProducts = () => {
   });
 };
 
-export const useAdminOrders = (page = 0, pageSize = 50, filters?: { status?: string; search?: string; time?: string }) => {
+export const useAdminOrders = (
+  page = 0,
+  pageSize = 50,
+  filters?: { status?: string; search?: string; time?: string },
+) => {
   const { isAdmin } = useAdmin();
 
   return useQuery({

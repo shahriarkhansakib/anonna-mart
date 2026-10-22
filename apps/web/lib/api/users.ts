@@ -22,9 +22,12 @@ export interface UserProfileItem {
 
 export const usersApi = {
   list: () =>
-    apiFetch<{ success: boolean; data: UserProfileItem[]; users: UserProfileItem[]; totalCount: number }>(
-      "/api/users",
-    ),
+    apiFetch<{
+      success: boolean;
+      data: UserProfileItem[];
+      users: UserProfileItem[];
+      totalCount: number;
+    }>("/api/users"),
   get: (id: string) =>
     apiFetch<{
       success: boolean;

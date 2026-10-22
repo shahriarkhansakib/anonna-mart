@@ -1,60 +1,66 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   Check,
   ChevronRight,
   Heart,
   Home,
+  Loader2,
   PackageCheck,
+  RefreshCcw,
+  ShieldCheck,
   ShoppingBag,
   Star,
-  X,
   Truck,
-  ShieldCheck,
-  RefreshCcw,
-  Loader2,
-} from 'lucide-react';
-import { Logo } from '@/components/common/Logo';
-import { CustomerProfileMenu } from '@/components/common/CustomerProfileMenu';
-import { ThemeToggle } from '@/components/common/ThemeToggle';
-import { ProductThumbnail } from './ProductCard';
-import { CartDrawerPanel } from './StorefrontPanels';
-import {
-  formatTaka,
-  getDiscountPercent,
-  hasValidDiscount,
-  type StorefrontProduct,
-} from './types';
-import { useCart } from '@/contexts/CartContext';
-import { useWishlist } from '@/contexts/WishlistContext';
-import { useQuery } from '@tanstack/react-query';
-import { productsApi, type ProductItem } from '@/lib/api/products';
-import { toast } from 'sonner';
+  X,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { CustomerProfileMenu } from "@/components/common/CustomerProfileMenu";
+import { Logo } from "@/components/common/Logo";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { type ProductItem, productsApi } from "@/lib/api/products";
+import { ProductThumbnail } from "./ProductCard";
+import { CartDrawerPanel } from "./StorefrontPanels";
+import { formatTaka, getDiscountPercent, hasValidDiscount, type StorefrontProduct } from "./types";
 
 export function StandaloneProductDetailsPage() {
   const params = useParams<{ id: string }>();
-  const productId = params?.id || '';
+  const productId = params?.id || "";
   const router = useRouter();
   const [cartOpen, setCartOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
 
-  const { items: cartItems, count: cartCount, subtotal: cartSubtotal, addItem, removeItem, updateQuantity } = useCart();
+  const {
+    items: cartItems,
+    count: cartCount,
+    subtotal: cartSubtotal,
+    addItem,
+    removeItem,
+    updateQuantity,
+  } = useCart();
   const { wishlistIds, isInWishlist, toggleWishlist } = useWishlist();
 
   // Load product from PostgreSQL DB
-  const { data: productResponse, isLoading, isError } = useQuery({
-    queryKey: ['product', productId],
+  const {
+    data: productResponse,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["product", productId],
     queryFn: () => productsApi.get(productId),
     enabled: Boolean(productId),
   });
 
   const { data: allProductsResponse } = useQuery({
-    queryKey: ['products'],
+    queryKey: ["products"],
     queryFn: () => productsApi.list(),
   });
 
@@ -64,11 +70,11 @@ export function StandaloneProductDetailsPage() {
     const primaryImage =
       raw.images && raw.images.length > 0
         ? raw.images[0]
-        : raw.imageUrl || raw.image_url || '/images/homedecor.jpeg';
+        : raw.imageUrl || raw.image_url || "/images/homedecor.jpeg";
     return {
       id: raw.id,
       name: raw.name,
-      category: raw.category || 'General',
+      category: raw.category || "General",
       categoryId: raw.categoryId,
       slug: raw.slug,
       sku: raw.sku,
@@ -92,11 +98,11 @@ export function StandaloneProductDetailsPage() {
       const primaryImage =
         p.images && p.images.length > 0
           ? p.images[0]
-          : p.imageUrl || p.image_url || '/images/homedecor.jpeg';
+          : p.imageUrl || p.image_url || "/images/homedecor.jpeg";
       return {
         id: p.id,
         name: p.name,
-        category: p.category || 'General',
+        category: p.category || "General",
         image: primaryImage,
         images: p.images || [primaryImage],
         price: Number(p.price) || 0,
@@ -121,7 +127,7 @@ export function StandaloneProductDetailsPage() {
 
   const cartLines = useMemo(
     () => cartItems.map((item) => ({ productId: item.id, quantity: item.quantity })),
-    [cartItems]
+    [cartItems],
   );
 
   if (isLoading) {
@@ -145,7 +151,10 @@ export function StandaloneProductDetailsPage() {
           </div>
         </header>
         <main className="mx-auto max-w-3xl px-4 py-20 text-center">
-          <PackageCheck className="mx-auto h-12 w-12 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />
+          <PackageCheck
+            className="mx-auto h-12 w-12 text-emerald-700 dark:text-emerald-400"
+            aria-hidden="true"
+          />
           <h1 className="mt-4 text-2xl font-black text-foreground">Product not found</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             This product may have been moved, sold out, or the link might be incorrect.
@@ -164,17 +173,27 @@ export function StandaloneProductDetailsPage() {
   const stock = product.stock ?? 10;
   const soldOut = stock < 1;
   const hasDiscount = hasValidDiscount(product);
-  const galleryImages = product.images && product.images.length > 0 ? product.images : [product.image || '/images/homedecor.jpeg'];
+  const galleryImages =
+    product.images && product.images.length > 0
+      ? product.images
+      : [product.image || "/images/homedecor.jpeg"];
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
       <header className="sticky top-0 z-30 border-b border-border bg-background/95 shadow-xs backdrop-blur-md">
         <div className="mx-auto flex h-14 sm:h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           <Logo width={110} height={36} />
-          <nav className="hidden items-center gap-2 text-xs font-semibold text-muted-foreground sm:flex" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-foreground">Home</Link>
+          <nav
+            className="hidden items-center gap-2 text-xs font-semibold text-muted-foreground sm:flex"
+            aria-label="Breadcrumb"
+          >
+            <Link href="/" className="hover:text-foreground">
+              Home
+            </Link>
             <ChevronRight className="h-3.5 w-3.5" />
-            <Link href="/products" className="hover:text-foreground">Products</Link>
+            <Link href="/products" className="hover:text-foreground">
+              Products
+            </Link>
             <ChevronRight className="h-3.5 w-3.5" />
             <span className="max-w-[200px] truncate text-foreground">{product.name}</span>
           </nav>
@@ -247,7 +266,9 @@ export function StandaloneProductDetailsPage() {
                     type="button"
                     onClick={() => setActiveImage(idx)}
                     className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition-all ${
-                      activeImage === idx ? 'border-brand-900 ring-2 ring-brand-900/20' : 'border-slate-200 opacity-70 hover:opacity-100'
+                      activeImage === idx
+                        ? "border-brand-900 ring-2 ring-brand-900/20"
+                        : "border-slate-200 opacity-70 hover:opacity-100"
                     }`}
                   >
                     <Image src={img} alt="" fill className="object-cover" />
@@ -278,11 +299,15 @@ export function StandaloneProductDetailsPage() {
             </div>
 
             <div className="mt-4 flex items-center gap-3">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
-                soldOut ? 'bg-rose-50 text-rose-700' : 'bg-emerald-50 text-emerald-800'
-              }`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${soldOut ? 'bg-rose-500' : 'bg-emerald-500'}`} />
-                {soldOut ? 'Out of Stock' : `In Stock (${stock} available)`}
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                  soldOut ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-800"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${soldOut ? "bg-rose-500" : "bg-emerald-500"}`}
+                />
+                {soldOut ? "Out of Stock" : `In Stock (${stock} available)`}
               </span>
               {product.sku && (
                 <span className="font-mono text-xs text-slate-400">SKU: {product.sku}</span>
@@ -290,9 +315,11 @@ export function StandaloneProductDetailsPage() {
             </div>
 
             <div className="mt-6 border-t border-slate-100 pt-6">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">Description</h2>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Description
+              </h2>
               <p className="mt-2 text-sm leading-relaxed text-slate-600 whitespace-pre-line">
-                {product.description || 'No description available for this product.'}
+                {product.description || "No description available for this product."}
               </p>
             </div>
 
@@ -305,7 +332,7 @@ export function StandaloneProductDetailsPage() {
                 className="flex-1 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-brand-900 px-6 text-sm font-bold text-white shadow-sm transition-all hover:bg-brand-950 hover:shadow-md disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
               >
                 <ShoppingBag className="h-4 w-4" />
-                {soldOut ? 'Currently Out of Stock' : 'Add to Shopping Cart'}
+                {soldOut ? "Currently Out of Stock" : "Add to Shopping Cart"}
               </button>
 
               <button
@@ -313,12 +340,12 @@ export function StandaloneProductDetailsPage() {
                 onClick={() => toggleWishlist(product.id, product.name)}
                 className={`inline-flex h-12 w-12 items-center justify-center rounded-xl border transition-colors ${
                   isInWishlist(product.id)
-                    ? 'border-rose-200 bg-rose-50 text-rose-600'
-                    : 'border-slate-200 text-slate-600 hover:text-rose-600'
+                    ? "border-rose-200 bg-rose-50 text-rose-600"
+                    : "border-slate-200 text-slate-600 hover:text-rose-600"
                 }`}
                 aria-label="Toggle wishlist"
               >
-                <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+                <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? "fill-current" : ""}`} />
               </button>
             </div>
 

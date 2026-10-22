@@ -59,7 +59,12 @@ export const ordersApi = {
     if (params?.search) sp.set("search", params.search);
     if (params?.time && params.time !== "all") sp.set("time", params.time);
     const qs = sp.toString() ? `?${sp.toString()}` : "";
-    return apiFetch<{ success: boolean; data: OrderItem[]; orders: OrderItem[]; totalCount: number }>(`/api/orders${qs}`);
+    return apiFetch<{
+      success: boolean;
+      data: OrderItem[];
+      orders: OrderItem[];
+      totalCount: number;
+    }>(`/api/orders${qs}`);
   },
   get: (id: string) => apiFetch<{ success: boolean; data: OrderItem }>(`/api/orders/${id}`),
   create: (data: any) =>
@@ -72,7 +77,10 @@ export const ordersApi = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
-  accept: (id: string, data?: { trackingId?: string; consignmentId?: string; courierName?: string }) =>
+  accept: (
+    id: string,
+    data?: { trackingId?: string; consignmentId?: string; courierName?: string },
+  ) =>
     apiFetch<{ success: boolean; data: OrderItem }>(`/api/orders/${id}/accept`, {
       method: "POST",
       body: JSON.stringify(data || {}),

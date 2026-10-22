@@ -1,25 +1,27 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { ArrowRight, Heart, MapPin, Package, ShoppingBag, UserRound } from 'lucide-react';
-import { useSession } from '@/lib/auth-client';
-import { useWishlist } from '@/contexts/WishlistContext';
-import { OrderHistory } from './OrderHistory';
+import { ArrowRight, Heart, MapPin, Package, ShoppingBag, UserRound } from "lucide-react";
+import Link from "next/link";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { useSession } from "@/lib/auth-client";
+import { OrderHistory } from "./OrderHistory";
 
 const panelClass =
-  'rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 transition hover:border-brand-300 hover:shadow-md';
+  "rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 transition hover:border-brand-300 hover:shadow-md";
 
 export function AccountOverview() {
   const sessionResult = useSession() as any;
   const user = sessionResult?.data?.user;
   const { wishlistIds } = useWishlist();
 
-  const displayName = user?.name || 'Customer';
+  const displayName = user?.name || "Customer";
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-brand-700">Account Overview</p>
+        <p className="text-xs font-bold uppercase tracking-wider text-brand-700">
+          Account Overview
+        </p>
         <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
           Welcome back, {displayName}
         </h1>
@@ -33,7 +35,9 @@ export function AccountOverview() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800">
             <Package className="h-5 w-5" />
           </div>
-          <p className="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">My Orders</p>
+          <p className="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            My Orders
+          </p>
           <p className="mt-1 font-bold text-slate-900">Order History</p>
           <p className="mt-1 text-xs text-slate-500">Track shipments & courier delivery.</p>
         </Link>
@@ -42,16 +46,22 @@ export function AccountOverview() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800">
             <MapPin className="h-5 w-5" />
           </div>
-          <p className="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Addresses</p>
+          <p className="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            Addresses
+          </p>
           <p className="mt-1 font-bold text-slate-900">Saved Addresses</p>
-          <p className="mt-1 text-xs text-slate-500">Manage delivery addresses for fast checkout.</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Manage delivery addresses for fast checkout.
+          </p>
         </Link>
 
         <Link href="/account/wishlist" className={`${panelClass} group`}>
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800">
             <Heart className="h-5 w-5" />
           </div>
-          <p className="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Saved Items</p>
+          <p className="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            Saved Items
+          </p>
           <p className="mt-1 font-bold text-slate-900">{wishlistIds.length} Wishlist Items</p>
           <p className="mt-1 text-xs text-slate-500">View items you bookmarked for later.</p>
         </Link>
@@ -60,9 +70,13 @@ export function AccountOverview() {
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800">
             <UserRound className="h-5 w-5" />
           </div>
-          <p className="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Profile</p>
-          <p className="mt-1 font-bold text-slate-900 truncate">{user?.name || 'My Profile'}</p>
-          <p className="mt-1 text-xs text-slate-500 truncate">{user?.email || 'Update your details.'}</p>
+          <p className="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            Profile
+          </p>
+          <p className="mt-1 font-bold text-slate-900 truncate">{user?.name || "My Profile"}</p>
+          <p className="mt-1 text-xs text-slate-500 truncate">
+            {user?.email || "Update your details."}
+          </p>
         </Link>
       </div>
 

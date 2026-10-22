@@ -1,7 +1,7 @@
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import React from "react";
-import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/common/Logo";
 import { ThemeToggle } from "@/components/common/ThemeToggle";
 
@@ -36,9 +36,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
       {/* Centered Auth Content */}
       <main className="flex-1 flex items-center justify-center p-4 py-8 sm:py-12">
-        <div className="w-full max-w-md">
-          {children}
-        </div>
+        <div className="w-full max-w-md">{children}</div>
       </main>
     </div>
   );

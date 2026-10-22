@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { incompleteOrdersApi, type IncompleteOrderItem } from "@/lib/api/incomplete-orders";
+import { type IncompleteOrderItem, incompleteOrdersApi } from "@/lib/api/incomplete-orders";
 import { ordersApi } from "@/lib/api/orders";
 
 export type IncompleteOrder = IncompleteOrderItem;
@@ -62,8 +62,16 @@ export function useIncompleteOrders() {
       const edited = param.editedData || {};
       const customerName = edited.customer_name || order.customerName || order.customer_name;
       const customerPhone = edited.customer_phone || order.customerPhone || order.customer_phone;
-      const customerEmail = edited.customer_email || order.customerEmail || order.customer_email || "customer@example.com";
-      const shippingAddress = edited.shipping_address || order.shippingAddress || order.shipping_address || "Pending customer confirmation";
+      const customerEmail =
+        edited.customer_email ||
+        order.customerEmail ||
+        order.customer_email ||
+        "customer@example.com";
+      const shippingAddress =
+        edited.shipping_address ||
+        order.shippingAddress ||
+        order.shipping_address ||
+        "Pending customer confirmation";
       const totalAmount = param.grandTotal || order.totalAmount || order.total_amount || 0;
 
       await ordersApi.create({
@@ -93,7 +101,9 @@ export function useIncompleteOrders() {
   const orders = incompleteOrders.filter((o) => o.status !== "trashed");
   const trashedOrders = incompleteOrders.filter((o) => o.status === "trashed");
 
-  const totalIncomplete = orders.filter((o) => o.status === "incomplete" || o.status === "pending").length;
+  const totalIncomplete = orders.filter(
+    (o) => o.status === "incomplete" || o.status === "pending",
+  ).length;
   const totalRecovered = orders.filter((o) => o.status === "recovered").length;
   const totalTrashed = trashedOrders.length;
   const recoveryRate = orders.length ? Math.round((totalRecovered / orders.length) * 100) : 0;

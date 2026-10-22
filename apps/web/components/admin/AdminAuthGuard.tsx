@@ -1,11 +1,11 @@
 "use client";
 
-import { AdminShell } from "@/components/admin/AdminShell";
-import { useUserRole } from "@/hooks/useUserRole";
 import { Loader2, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { Suspense, useEffect } from "react";
+import { AdminShell } from "@/components/admin/AdminShell";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
   const { isAdmin, isStaff, isLoading } = useUserRole();
@@ -21,7 +21,9 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground font-medium">Verifying GrowMate store staff authorization...</p>
+        <p className="text-sm text-muted-foreground font-medium">
+          Verifying GrowMate store staff authorization...
+        </p>
       </div>
     );
   }
@@ -34,7 +36,8 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
         </div>
         <h1 className="text-xl font-bold tracking-tight">Access Restricted</h1>
         <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-4">
-          You must be logged in as an authorized store administrator or staff member to view this portal.
+          You must be logged in as an authorized store administrator or staff member to view this
+          portal.
         </p>
         <Link
           href="/sign-in?redirect=/admin"

@@ -6,8 +6,7 @@ import React from "react";
 import { useCart } from "@/contexts/CartContext";
 
 export function CartDrawer() {
-  const { items, count, subtotal, isCartOpen, closeCart, updateQuantity, removeItem } =
-    useCart();
+  const { items, count, subtotal, isCartOpen, closeCart, updateQuantity, removeItem } = useCart();
 
   if (!isCartOpen) return null;
 
@@ -44,8 +43,8 @@ export function CartDrawer() {
                 </div>
                 <h3 className="font-semibold text-base">Your cart is empty</h3>
                 <p className="text-xs text-muted-foreground max-w-xs">
-                  Looks like you haven't added anything to your cart yet. Browse our veterinary and pet
-                  care products!
+                  Looks like you haven't added anything to your cart yet. Browse our veterinary and
+                  pet care products!
                 </p>
                 <button
                   onClick={closeCart}

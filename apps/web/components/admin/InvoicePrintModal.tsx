@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { X, Printer, ShieldCheck } from 'lucide-react';
-import { Logo } from '@/components/common/Logo';
-import { formatTaka } from '@/components/storefront/types';
-import type { OrderItem } from '@/lib/api/orders';
+import { Printer, ShieldCheck, X } from "lucide-react";
+import React from "react";
+import { Logo } from "@/components/common/Logo";
+import { formatTaka } from "@/components/storefront/types";
+import type { OrderItem } from "@/lib/api/orders";
 
 interface InvoicePrintModalProps {
   order: OrderItem | null;
@@ -24,7 +24,9 @@ export function InvoicePrintModal({ order, isOpen, onClose }: InvoicePrintModalP
   const subtotal = Number(order.subtotal || 0);
   const shippingFee = Number(order.shippingFee || order.shipping_fee || 60);
   const discountAmount = Number(order.discountAmount || order.discount_amount || 0);
-  const totalAmount = Number(order.totalAmount || order.total_amount || subtotal + shippingFee - discountAmount);
+  const totalAmount = Number(
+    order.totalAmount || order.total_amount || subtotal + shippingFee - discountAmount,
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
@@ -39,7 +41,9 @@ export function InvoicePrintModal({ order, isOpen, onClose }: InvoicePrintModalP
         {/* Top Control Bar (Hidden in Print) */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50 print:hidden">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Commercial Invoice</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              Commercial Invoice
+            </span>
             <span className="font-mono text-xs font-bold text-brand-900 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
               #{invoiceNumber}
             </span>
@@ -64,7 +68,10 @@ export function InvoicePrintModal({ order, isOpen, onClose }: InvoicePrintModalP
         </div>
 
         {/* Printable Document */}
-        <div id="printable-invoice" className="p-8 sm:p-10 overflow-y-auto bg-white text-slate-800 print:p-0">
+        <div
+          id="printable-invoice"
+          className="p-8 sm:p-10 overflow-y-auto bg-white text-slate-800 print:p-0"
+        >
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between pb-8 border-b-2 border-brand-900 gap-6">
             <div>
@@ -83,23 +90,27 @@ export function InvoicePrintModal({ order, isOpen, onClose }: InvoicePrintModalP
               </h2>
               <div className="mt-2 space-y-1 text-xs">
                 <p>
-                  <span className="text-slate-400 font-medium">Invoice No:</span>{' '}
+                  <span className="text-slate-400 font-medium">Invoice No:</span>{" "}
                   <span className="font-mono font-bold text-slate-900">#{invoiceNumber}</span>
                 </p>
                 <p>
-                  <span className="text-slate-400 font-medium">Date:</span>{' '}
+                  <span className="text-slate-400 font-medium">Date:</span>{" "}
                   <span className="font-semibold text-slate-900">
-                    {new Date(order.createdAt || Date.now()).toLocaleDateString('en-BD', { dateStyle: 'long' })}
+                    {new Date(order.createdAt || Date.now()).toLocaleDateString("en-BD", {
+                      dateStyle: "long",
+                    })}
                   </span>
                 </p>
                 <p>
-                  <span className="text-slate-400 font-medium">Payment Mode:</span>{' '}
-                  <span className="font-bold text-brand-900">{order.paymentMethod || 'Cash on Delivery'}</span>
+                  <span className="text-slate-400 font-medium">Payment Mode:</span>{" "}
+                  <span className="font-bold text-brand-900">
+                    {order.paymentMethod || "Cash on Delivery"}
+                  </span>
                 </p>
                 <p>
-                  <span className="text-slate-400 font-medium">Status:</span>{' '}
+                  <span className="text-slate-400 font-medium">Status:</span>{" "}
                   <span className="inline-block font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded capitalize">
-                    {order.paymentStatus || order.status || 'Pending'}
+                    {order.paymentStatus || order.status || "Pending"}
                   </span>
                 </p>
               </div>
@@ -122,16 +133,16 @@ export function InvoicePrintModal({ order, isOpen, onClose }: InvoicePrintModalP
               <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">
                 Courier & Logistics Details
               </p>
-              <p className="font-semibold text-slate-900">{order.courierName || 'Steadfast Courier Partner'}</p>
+              <p className="font-semibold text-slate-900">
+                {order.courierName || "Steadfast Courier Partner"}
+              </p>
               {order.trackingCode && (
                 <p className="mt-1">
-                  <span className="text-slate-500">Tracking Code:</span>{' '}
+                  <span className="text-slate-500">Tracking Code:</span>{" "}
                   <span className="font-mono font-bold text-brand-900">{order.trackingCode}</span>
                 </p>
               )}
-              {order.notes && (
-                <p className="mt-1 text-slate-500 italic">Notes: {order.notes}</p>
-              )}
+              {order.notes && <p className="mt-1 text-slate-500 italic">Notes: {order.notes}</p>}
             </div>
           </div>
 
@@ -153,12 +164,20 @@ export function InvoicePrintModal({ order, isOpen, onClose }: InvoicePrintModalP
                   return (
                     <tr key={idx} className="py-3">
                       <td className="py-3 font-semibold text-slate-800">
-                        {item.productName || item.name || 'Product Item'}
-                        {item.sku && <span className="block font-mono text-[10px] text-slate-400">SKU: {item.sku}</span>}
+                        {item.productName || item.name || "Product Item"}
+                        {item.sku && (
+                          <span className="block font-mono text-[10px] text-slate-400">
+                            SKU: {item.sku}
+                          </span>
+                        )}
                       </td>
                       <td className="py-3 text-center font-bold text-slate-700">{qty}</td>
-                      <td className="py-3 text-right font-medium text-slate-600">{formatTaka(unitPrice)}</td>
-                      <td className="py-3 text-right font-bold text-slate-900">{formatTaka(unitPrice * qty)}</td>
+                      <td className="py-3 text-right font-medium text-slate-600">
+                        {formatTaka(unitPrice)}
+                      </td>
+                      <td className="py-3 text-right font-bold text-slate-900">
+                        {formatTaka(unitPrice * qty)}
+                      </td>
                     </tr>
                   );
                 })
@@ -166,8 +185,12 @@ export function InvoicePrintModal({ order, isOpen, onClose }: InvoicePrintModalP
                 <tr>
                   <td className="py-3 font-semibold text-slate-800">General Catalog Order Items</td>
                   <td className="py-3 text-center font-bold text-slate-700">1</td>
-                  <td className="py-3 text-right font-medium text-slate-600">{formatTaka(subtotal)}</td>
-                  <td className="py-3 text-right font-bold text-slate-900">{formatTaka(subtotal)}</td>
+                  <td className="py-3 text-right font-medium text-slate-600">
+                    {formatTaka(subtotal)}
+                  </td>
+                  <td className="py-3 text-right font-bold text-slate-900">
+                    {formatTaka(subtotal)}
+                  </td>
                 </tr>
               )}
             </tbody>

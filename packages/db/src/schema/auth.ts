@@ -1,6 +1,5 @@
 import { boolean, index, integer, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
-
 export const systemRoleEnum = pgEnum("system_role", ["user", "admin", "super_admin"]);
 export const accountStatusEnum = pgEnum("account_status", ["active", "suspended", "banned"]);
 
@@ -116,7 +115,6 @@ export const twoFactor = pgTable(
   (table) => [index("two_factor_user_id_idx").on(table.userId)],
 );
 
-
 export const organizations = pgTable("organizations", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -178,4 +176,3 @@ export const auditLogs = pgTable(
 
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type NewAuditLog = typeof auditLogs.$inferInsert;
-

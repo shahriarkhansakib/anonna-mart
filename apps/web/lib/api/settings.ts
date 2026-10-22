@@ -46,7 +46,9 @@ export interface SettingsData {
 export const settingsApi = {
   get: () => apiFetch<{ success: boolean; data: SettingsData }>("/api/settings"),
   getKey: <T = any>(key: string) =>
-    apiFetch<{ success: boolean; data: { value: T } }>(`/api/settings?key=${encodeURIComponent(key)}`),
+    apiFetch<{ success: boolean; data: { value: T } }>(
+      `/api/settings?key=${encodeURIComponent(key)}`,
+    ),
   post: (payload: { key?: string; value?: any } | Partial<SettingsData>) =>
     apiFetch<{ success: boolean; data: any }>("/api/settings", {
       method: "POST",

@@ -44,6 +44,6 @@ function createDb() {
 
 export const db = createDb();
 
-export * from "./schema/index";
-export * from "./permissions-registry";
 export * from "drizzle-orm";
+export * from "./permissions-registry";
+export * from "./schema/index";

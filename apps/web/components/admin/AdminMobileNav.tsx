@@ -195,7 +195,13 @@ export const AdminMobileNav = ({ pendingOrders = 0 }: AdminMobileNavProps) => {
       <div className="p-3 border-t border-border/40 bg-muted/20 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="h-6 w-6 rounded-md overflow-hidden bg-white shadow-2xs p-0.5 flex items-center justify-center border border-black/5 dark:border-white/10 shrink-0">
-            <img src="/growmate-logo.png" alt="GrowMate" className="h-full w-full object-contain" width={24} height={24} />
+            <img
+              src="/growmate-logo.png"
+              alt="GrowMate"
+              className="h-full w-full object-contain"
+              width={24}
+              height={24}
+            />
           </div>
           <div className="flex flex-col">
             <span className="text-[11px] font-bold text-foreground">GrowMate Admin</span>

@@ -20,8 +20,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const rawAppUrl =
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5003";
+  const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5003";
   const appUrl = rawAppUrl.endsWith("/") ? rawAppUrl.slice(0, -1) : rawAppUrl;
   const cookieHeader = request.headers.get("cookie") || "";
 
@@ -64,11 +63,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // 2. Forced Password Reset
-  if (
-    user &&
-    user.requiresPasswordReset === true &&
-    !pathname.startsWith("/reset-password")
-  ) {
+  if (user && user.requiresPasswordReset === true && !pathname.startsWith("/reset-password")) {
     return NextResponse.redirect(new URL("/reset-password", request.url));
   }
 

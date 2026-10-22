@@ -246,10 +246,18 @@ const AdminSettingsContent = () => {
         const res = await settingsApi.get();
         const d = res.data;
         return {
-          store: d.storeSettings ? { ...defaultStoreSettings, ...d.storeSettings } : defaultStoreSettings,
-          shipping: d.shippingSettings ? { ...defaultShippingSettings, ...d.shippingSettings } : defaultShippingSettings,
-          orders: d.orderSettings ? { ...defaultOrderSettings, ...d.orderSettings } : defaultOrderSettings,
-          notifications: d.notificationSettings ? { ...defaultNotifications, ...d.notificationSettings } : defaultNotifications,
+          store: d.storeSettings
+            ? { ...defaultStoreSettings, ...d.storeSettings }
+            : defaultStoreSettings,
+          shipping: d.shippingSettings
+            ? { ...defaultShippingSettings, ...d.shippingSettings }
+            : defaultShippingSettings,
+          orders: d.orderSettings
+            ? { ...defaultOrderSettings, ...d.orderSettings }
+            : defaultOrderSettings,
+          notifications: d.notificationSettings
+            ? { ...defaultNotifications, ...d.notificationSettings }
+            : defaultNotifications,
           platform: defaultPlatformSettings,
           brand: {
             ...defaultBrandAssets,
@@ -293,7 +301,11 @@ const AdminSettingsContent = () => {
       else if (key === "shipping") payload.shippingSettings = data;
       else if (key === "orders") payload.orderSettings = data;
       else if (key === "notifications") payload.notificationSettings = data;
-      else if (key === "brand_assets") payload.storeSettings = { logoUrl: (data as any)?.logo_url, faviconUrl: (data as any)?.favicon_url };
+      else if (key === "brand_assets")
+        payload.storeSettings = {
+          logoUrl: (data as any)?.logo_url,
+          faviconUrl: (data as any)?.favicon_url,
+        };
       else payload[key] = data;
 
       await settingsApi.save(payload);

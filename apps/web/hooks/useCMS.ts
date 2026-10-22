@@ -187,10 +187,34 @@ export const useCMSCategories = () => {
     queryKey: ["cms-categories"],
     queryFn: async () => {
       return [
-        { id: "nutrition", name: "Nutrition", slug: "nutrition", description: "Food & Diet", is_active: true },
-        { id: "health", name: "Health", slug: "health", description: "Health & Wellness", is_active: true },
-        { id: "grooming", name: "Grooming", slug: "grooming", description: "Hygiene & Grooming", is_active: true },
-        { id: "news", name: "News", slug: "news", description: "Announcements & News", is_active: true },
+        {
+          id: "nutrition",
+          name: "Nutrition",
+          slug: "nutrition",
+          description: "Food & Diet",
+          is_active: true,
+        },
+        {
+          id: "health",
+          name: "Health",
+          slug: "health",
+          description: "Health & Wellness",
+          is_active: true,
+        },
+        {
+          id: "grooming",
+          name: "Grooming",
+          slug: "grooming",
+          description: "Hygiene & Grooming",
+          is_active: true,
+        },
+        {
+          id: "news",
+          name: "News",
+          slug: "news",
+          description: "Announcements & News",
+          is_active: true,
+        },
       ] as CMSCategory[];
     },
     staleTime: 1000 * 60 * 10,

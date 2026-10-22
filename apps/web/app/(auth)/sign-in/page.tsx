@@ -49,7 +49,12 @@ function SignInForm() {
     if (!authLoading && user) {
       if (user.role === "admin" || user.role === "super_admin") {
         router.replace("/admin");
-      } else if (redirectUrl && redirectUrl !== "/" && !redirectUrl.includes("sign-in") && !redirectUrl.includes("login")) {
+      } else if (
+        redirectUrl &&
+        redirectUrl !== "/" &&
+        !redirectUrl.includes("sign-in") &&
+        !redirectUrl.includes("login")
+      ) {
         router.replace(redirectUrl);
       } else {
         router.replace("/account");
@@ -101,14 +106,24 @@ function SignInForm() {
 
       if (isAdmin) {
         toast.success("Welcome back!", { description: "Opening Store Admin Portal..." });
-        if (redirectUrl && redirectUrl !== "/" && !redirectUrl.includes("sign-in") && !redirectUrl.includes("login")) {
+        if (
+          redirectUrl &&
+          redirectUrl !== "/" &&
+          !redirectUrl.includes("sign-in") &&
+          !redirectUrl.includes("login")
+        ) {
           router.replace(redirectUrl);
         } else {
           router.replace("/admin");
         }
       } else {
         toast.success("Welcome back!", { description: "Successfully signed in." });
-        if (redirectUrl && redirectUrl !== "/" && !redirectUrl.includes("sign-in") && !redirectUrl.includes("login")) {
+        if (
+          redirectUrl &&
+          redirectUrl !== "/" &&
+          !redirectUrl.includes("sign-in") &&
+          !redirectUrl.includes("login")
+        ) {
           router.replace(redirectUrl);
         } else {
           router.replace("/account");
@@ -123,10 +138,15 @@ function SignInForm() {
   return (
     <div className="rounded-2xl border border-border bg-card p-7 sm:p-9 shadow-xl text-card-foreground transition-all">
       <h1 className="text-2xl font-bold tracking-tight text-foreground">Welcome back</h1>
-      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">Sign in to continue to your account.</p>
+      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+        Sign in to continue to your account.
+      </p>
 
       {errorMsg && (
-        <div role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive font-medium">
+        <div
+          role="alert"
+          className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive font-medium"
+        >
           {errorMsg}
         </div>
       )}
@@ -152,7 +172,10 @@ function SignInForm() {
 
       <form noValidate onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label htmlFor="login-email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80">
+          <label
+            htmlFor="login-email"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80"
+          >
             Email address
           </label>
           <input
@@ -169,7 +192,10 @@ function SignInForm() {
         </div>
 
         <div>
-          <label htmlFor="login-password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80">
+          <label
+            htmlFor="login-password"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80"
+          >
             Password
           </label>
           <div className="relative">
@@ -190,7 +216,11 @@ function SignInForm() {
               onClick={() => setShowPassword((curr) => !curr)}
               className="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
-              {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>

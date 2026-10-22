@@ -9,7 +9,6 @@ import { PermissionService } from "../permissions/permission.service";
 
 export const ordersRouter = new Hono();
 
-
 // Helper to format an order with full compatibility for Admin views
 function formatOrder(order: any, items: any[] = [], user: any = null) {
   if (!order) return order;
@@ -56,8 +55,12 @@ function formatOrder(order: any, items: any[] = [], user: any = null) {
     consignment_id: order.consignmentId || null,
     rejection_reason: order.rejectionReason || null,
     trashed_at: order.trashedAt ? new Date(order.trashedAt).toISOString() : null,
-    created_at: order.createdAt ? new Date(order.createdAt).toISOString() : new Date().toISOString(),
-    updated_at: order.updatedAt ? new Date(order.updatedAt).toISOString() : new Date().toISOString(),
+    created_at: order.createdAt
+      ? new Date(order.createdAt).toISOString()
+      : new Date().toISOString(),
+    updated_at: order.updatedAt
+      ? new Date(order.updatedAt).toISOString()
+      : new Date().toISOString(),
     items: formattedItems,
     profile,
   };
@@ -83,7 +86,6 @@ ordersRouter.get("/", requireAuth, async (c) => {
   if (!canViewAll) {
     allOrders = allOrders.filter((o) => o.userId === user.id);
   }
-
 
   // Filter out trashed by default unless explicitly requested
   if (status === "trashed") {
@@ -165,17 +167,19 @@ ordersRouter.get("/:id", requireAuth, async (c) => {
   }
 
   const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
-  const [orderCustomer] = order.userId ? await db.select().from(users).where(eq(users.id, order.userId)) : [null];
+  const [orderCustomer] = order.userId
+    ? await db.select().from(users).where(eq(users.id, order.userId))
+    : [null];
 
   return c.json({ success: true, data: formatOrder(order, items, orderCustomer) });
 });
-
 
 // POST /api/orders (Public or Authenticated Customer Checkout)
 ordersRouter.post("/", async (c) => {
   const body = await c.req.json();
   const id = body.id || randomUUID();
-  const orderNumber = body.orderNumber || body.order_number || `AM-${Math.floor(1000 + Math.random() * 9000)}`;
+  const orderNumber =
+    body.orderNumber || body.order_number || `AM-${Math.floor(1000 + Math.random() * 9000)}`;
 
   // Automatically link to active authenticated user session if present
   let resolvedUserId = body.userId || body.user_id || null;
@@ -191,7 +195,9 @@ ordersRouter.post("/", async (c) => {
   const subtotal = Number(body.subtotal || body.total_amount || 0);
   const shippingFee = Number(body.shippingFee || body.shipping_fee || 60);
   const discountAmount = Number(body.discountAmount || body.discount_amount || 0);
-  const totalAmount = Number(body.totalAmount || body.total_amount || subtotal + shippingFee - discountAmount);
+  const totalAmount = Number(
+    body.totalAmount || body.total_amount || subtotal + shippingFee - discountAmount,
+  );
 
   const [newOrder] = await db
     .insert(orders)
@@ -210,7 +216,8 @@ ordersRouter.post("/", async (c) => {
       discountAmount,
       totalAmount,
       status: body.status || "pending",
-      paymentStatus: body.paymentMethod === "online" || body.payment_method === "online" ? "paid" : "pending",
+      paymentStatus:
+        body.paymentMethod === "online" || body.payment_method === "online" ? "paid" : "pending",
       paymentMethod: body.paymentMethod || body.payment_method || "cod",
       notes: body.notes || null,
     })
@@ -236,26 +243,30 @@ ordersRouter.post("/", async (c) => {
 });
 
 // POST /api/orders/:id/accept
-ordersRouter.post("/:id/accept", requireAuth, requirePermission("orders:update_status"), async (c) => {
-  const id = c.req.param("id");
-  const body = await c.req.json().catch(() => ({}));
+ordersRouter.post(
+  "/:id/accept",
+  requireAuth,
+  requirePermission("orders:update_status"),
+  async (c) => {
+    const id = c.req.param("id");
+    const body = await c.req.json().catch(() => ({}));
 
+    const [updated] = await db
+      .update(orders)
+      .set({
+        status: "processing",
+        trackingCode: body.trackingId || body.tracking_id || null,
+        consignmentId: body.consignmentId || body.consignment_id || null,
+        courierName: body.courierName || body.courier_name || "Steadfast",
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, id))
+      .returning();
 
-  const [updated] = await db
-    .update(orders)
-    .set({
-      status: "processing",
-      trackingCode: body.trackingId || body.tracking_id || null,
-      consignmentId: body.consignmentId || body.consignment_id || null,
-      courierName: body.courierName || body.courier_name || "Steadfast",
-      updatedAt: new Date(),
-    })
-    .where(eq(orders.id, id))
-    .returning();
-
-  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
-  return c.json({ success: true, data: formatOrder(updated, items) });
-});
+    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
+    return c.json({ success: true, data: formatOrder(updated, items) });
+  },
+);
 
 // POST /api/orders/:id/reject
 ordersRouter.post("/:id/reject", requireAuth, requirePermission("orders:cancel"), async (c) => {
@@ -278,25 +289,30 @@ ordersRouter.post("/:id/reject", requireAuth, requirePermission("orders:cancel")
 });
 
 // POST /api/orders/bulk-status
-ordersRouter.post("/bulk-status", requireAuth, requirePermission("orders:update_status"), async (c) => {
-  const { ids, status } = await c.req.json();
+ordersRouter.post(
+  "/bulk-status",
+  requireAuth,
+  requirePermission("orders:update_status"),
+  async (c) => {
+    const { ids, status } = await c.req.json();
 
-  if (!Array.isArray(ids) || !status) {
-    return c.json({ success: false, error: "Invalid parameters" }, 400);
-  }
+    if (!Array.isArray(ids) || !status) {
+      return c.json({ success: false, error: "Invalid parameters" }, 400);
+    }
 
-  for (const id of ids) {
-    await db
-      .update(orders)
-      .set({
-        status,
-        updatedAt: new Date(),
-      })
-      .where(eq(orders.id, id));
-  }
+    for (const id of ids) {
+      await db
+        .update(orders)
+        .set({
+          status,
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, id));
+    }
 
-  return c.json({ success: true, count: ids.length });
-});
+    return c.json({ success: true, count: ids.length });
+  },
+);
 
 // PATCH /api/orders/:id/trash (soft-delete or restore)
 ordersRouter.patch("/:id/trash", requireAuth, requirePermission("orders:cancel"), async (c) => {
@@ -340,11 +356,7 @@ ordersRouter.patch("/:id", requireAuth, requirePermission("orders:update_status"
   }
   if (body.notes !== undefined) updateData.notes = body.notes;
 
-  const [updated] = await db
-    .update(orders)
-    .set(updateData)
-    .where(eq(orders.id, id))
-    .returning();
+  const [updated] = await db.update(orders).set(updateData).where(eq(orders.id, id)).returning();
 
   const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
   return c.json({ success: true, data: formatOrder(updated, items) });
@@ -356,4 +368,3 @@ ordersRouter.delete("/:id", requireAuth, requirePermission("orders:delete"), asy
   await db.delete(orders).where(eq(orders.id, id));
   return c.json({ success: true, message: "Order permanently deleted" });
 });
-

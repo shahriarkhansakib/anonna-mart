@@ -1,44 +1,48 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   CheckCircle2,
   Clock3,
   CreditCard,
+  ExternalLink,
+  Loader2,
   MapPin,
   Package,
   Truck,
-  ExternalLink,
-  Loader2,
-} from 'lucide-react';
-import { formatTaka } from '@/components/storefront/types';
-import { useQuery } from '@tanstack/react-query';
-import { ordersApi, type OrderItem } from '@/lib/api/orders';
+} from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useMemo } from "react";
+import { formatTaka } from "@/components/storefront/types";
+import { type OrderItem, ordersApi } from "@/lib/api/orders";
 
 const ORDER_STEPS = [
-  { key: 'placed', label: 'Order Placed', icon: Clock3 },
-  { key: 'confirmed', label: 'Confirmed', icon: CheckCircle2 },
-  { key: 'shipped', label: 'Shipped', icon: Truck },
-  { key: 'delivered', label: 'Delivered', icon: Package },
+  { key: "placed", label: "Order Placed", icon: Clock3 },
+  { key: "confirmed", label: "Confirmed", icon: CheckCircle2 },
+  { key: "shipped", label: "Shipped", icon: Truck },
+  { key: "delivered", label: "Delivered", icon: Package },
 ];
 
 function getStepIndex(status: string) {
-  const norm = status?.toLowerCase() || '';
-  if (norm === 'delivered') return 3;
-  if (norm === 'shipped' || norm === 'in_transit') return 2;
-  if (norm === 'processing' || norm === 'confirmed') return 1;
+  const norm = status?.toLowerCase() || "";
+  if (norm === "delivered") return 3;
+  if (norm === "shipped" || norm === "in_transit") return 2;
+  if (norm === "processing" || norm === "confirmed") return 1;
   return 0;
 }
 
 export function OrderDetailsPage() {
   const params = useParams<{ id: string }>();
-  const orderId = params?.id || '';
+  const orderId = params?.id || "";
 
-  const { data: orderResponse, isLoading, isError } = useQuery({
-    queryKey: ['order', orderId],
+  const {
+    data: orderResponse,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["order", orderId],
     queryFn: () => ordersApi.get(orderId),
     enabled: Boolean(orderId),
   });
@@ -86,14 +90,19 @@ export function OrderDetailsPage() {
         {/* Top Header */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 p-6 sm:p-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-brand-700">Order Details</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-brand-700">
+              Order Details
+            </p>
             <h1 className="mt-1 font-mono text-2xl font-black text-slate-900">#{displayId}</h1>
             <p className="mt-1 text-xs text-slate-500">
-              Placed on {new Date(order.createdAt || Date.now()).toLocaleDateString('en-BD', { dateStyle: 'full' })}
+              Placed on{" "}
+              {new Date(order.createdAt || Date.now()).toLocaleDateString("en-BD", {
+                dateStyle: "full",
+              })}
             </p>
           </div>
           <span className="rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-emerald-900">
-            {order.status || 'Pending'}
+            {order.status || "Pending"}
           </span>
         </div>
 
@@ -108,18 +117,20 @@ export function OrderDetailsPage() {
                   <div
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${
                       isPastOrCurrent
-                        ? 'bg-brand-900 text-white shadow-xs'
-                        : 'bg-slate-200 text-slate-400'
+                        ? "bg-brand-900 text-white shadow-xs"
+                        : "bg-slate-200 text-slate-400"
                     }`}
                   >
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className={`text-xs font-bold ${isPastOrCurrent ? 'text-slate-900' : 'text-slate-400'}`}>
+                    <p
+                      className={`text-xs font-bold ${isPastOrCurrent ? "text-slate-900" : "text-slate-400"}`}
+                    >
                       {step.label}
                     </p>
                     <p className="text-[10px] text-slate-400">
-                      {idx <= currentStep ? 'Completed' : 'Pending'}
+                      {idx <= currentStep ? "Completed" : "Pending"}
                     </p>
                   </div>
                 </div>
@@ -144,7 +155,7 @@ export function OrderDetailsPage() {
               <Truck className="h-4 w-4 text-brand-800" /> Courier & Fulfillment
             </h2>
             <p className="mt-3 text-sm font-bold text-slate-900">
-              {order.courierName || 'Steadfast Courier'}
+              {order.courierName || "Steadfast Courier"}
             </p>
             {order.trackingCode || order.tracking_code ? (
               <div className="mt-2">
@@ -154,10 +165,13 @@ export function OrderDetailsPage() {
                 </span>
               </div>
             ) : (
-              <p className="mt-1 text-xs text-slate-500">Awaiting consignment creation by fulfillment center.</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Awaiting consignment creation by fulfillment center.
+              </p>
             )}
             <p className="mt-2 text-xs text-slate-600">
-              Payment Method: <span className="font-bold text-slate-900">{order.paymentMethod || 'COD'}</span>
+              Payment Method:{" "}
+              <span className="font-bold text-slate-900">{order.paymentMethod || "COD"}</span>
             </p>
           </div>
         </div>
@@ -173,7 +187,9 @@ export function OrderDetailsPage() {
                     #{idx + 1}
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-900">{item.productName || item.name || 'Product Item'}</p>
+                    <p className="text-xs font-bold text-slate-900">
+                      {item.productName || item.name || "Product Item"}
+                    </p>
                     <p className="text-[11px] text-slate-500">Quantity: {item.quantity}</p>
                   </div>
                 </div>
@@ -187,11 +203,15 @@ export function OrderDetailsPage() {
           <div className="mt-6 border-t border-slate-100 pt-4 space-y-1.5 text-xs">
             <div className="flex justify-between text-slate-600">
               <span>Subtotal:</span>
-              <span className="font-semibold text-slate-900">{formatTaka(Number(order.subtotal || 0))}</span>
+              <span className="font-semibold text-slate-900">
+                {formatTaka(Number(order.subtotal || 0))}
+              </span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Delivery Fee:</span>
-              <span className="font-semibold text-slate-900">{formatTaka(Number(order.shippingFee || 60))}</span>
+              <span className="font-semibold text-slate-900">
+                {formatTaka(Number(order.shippingFee || 60))}
+              </span>
             </div>
             {Number(order.discountAmount || 0) > 0 && (
               <div className="flex justify-between text-emerald-700 font-semibold">

@@ -1,36 +1,36 @@
-'use client';
+"use client";
 
-import { useEffect, useState, type FormEvent } from 'react';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
 import {
   Heart,
-  MapPin,
-  Package,
-  UserRound,
   LayoutDashboard,
   LogOut,
+  MapPin,
   Menu,
+  Package,
   Search,
-  ShoppingBag,
-  X,
   Shield,
-} from 'lucide-react';
-import { Logo } from '@/components/common/Logo';
-import { CustomerProfileMenu } from '@/components/common/CustomerProfileMenu';
-import { ThemeToggle } from '@/components/common/ThemeToggle';
-import { useSession, signOut } from '@/lib/auth-client';
-import { useCart } from '@/contexts/CartContext';
-import { useWishlist } from '@/contexts/WishlistContext';
-import { formatTaka } from '@/components/storefront/types';
-import { toast } from 'sonner';
+  ShoppingBag,
+  UserRound,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { type FormEvent, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { CustomerProfileMenu } from "@/components/common/CustomerProfileMenu";
+import { Logo } from "@/components/common/Logo";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { formatTaka } from "@/components/storefront/types";
+import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/contexts/WishlistContext";
+import { signOut, useSession } from "@/lib/auth-client";
 
 const accountLinks = [
-  { href: '/account', label: 'Overview', icon: LayoutDashboard },
-  { href: '/account/orders', label: 'My Orders', icon: Package },
-  { href: '/account/addresses', label: 'Saved Addresses', icon: MapPin },
-  { href: '/account/wishlist', label: 'Wishlist', icon: Heart },
-  { href: '/account/profile', label: 'My Profile', icon: UserRound },
+  { href: "/account", label: "Overview", icon: LayoutDashboard },
+  { href: "/account/orders", label: "My Orders", icon: Package },
+  { href: "/account/addresses", label: "Saved Addresses", icon: MapPin },
+  { href: "/account/wishlist", label: "Wishlist", icon: Heart },
+  { href: "/account/profile", label: "My Profile", icon: UserRound },
 ];
 
 export function CustomerAccountLayout({ children }: { children: React.ReactNode }) {
@@ -41,17 +41,17 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
   const { count: cartCount } = useCart();
   const { wishlistIds } = useWishlist();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const isAdmin = (user as any)?.role === 'admin';
+  const isAdmin = (user as any)?.role === "admin";
 
   const handleSignOut = async () => {
     try {
       await (signOut as any)();
-      toast.success('Signed out');
-      router.push('/');
+      toast.success("Signed out");
+      router.push("/");
     } catch {
-      toast.error('Failed to sign out');
+      toast.error("Failed to sign out");
     }
   };
 
@@ -129,10 +129,12 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
               <div className="border-b border-border pb-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-800 dark:bg-emerald-600 text-sm font-bold text-white shadow-xs">
-                    {user?.name?.[0]?.toUpperCase() || 'U'}
+                    {user?.name?.[0]?.toUpperCase() || "U"}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-foreground">{user?.name || 'Customer'}</p>
+                    <p className="truncate text-sm font-bold text-foreground">
+                      {user?.name || "Customer"}
+                    </p>
                     <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                 </div>
@@ -158,11 +160,11 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
                       href={href}
                       className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all sm:text-sm ${
                         active
-                          ? 'bg-brand-900 text-white shadow-xs'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-brand-900'
+                          ? "bg-brand-900 text-white shadow-xs"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-brand-900"
                       }`}
                     >
-                      <Icon className={`h-4 w-4 ${active ? 'text-white' : 'text-slate-400'}`} />
+                      <Icon className={`h-4 w-4 ${active ? "text-white" : "text-slate-400"}`} />
                       <span>{label}</span>
                     </Link>
                   );

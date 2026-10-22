@@ -60,7 +60,9 @@ courierRouter.post("/:name", async (c) => {
 
   if (name === "upload-image-url") {
     return c.json({
-      url: body.url || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&auto=format&fit=crop&q=80",
+      url:
+        body.url ||
+        "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=800&auto=format&fit=crop&q=80",
       success: true,
     });
   }

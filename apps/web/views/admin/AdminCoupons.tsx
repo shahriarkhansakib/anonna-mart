@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { couponsApi } from "@/lib/api/coupons";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +44,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAdminRealtimeDashboard } from "@/hooks/useAdminRealtimeDashboard";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { couponsApi } from "@/lib/api/coupons";
 import { useNavigate } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
 
@@ -97,12 +97,14 @@ const AdminCoupons = () => {
           code: c.code,
           description: c.description || "",
           discount_type: c.discount_type || c.discountType || "percentage",
-          discount_value: Number(c.discount_value !== undefined ? c.discount_value : c.discountValue) || 0,
+          discount_value:
+            Number(c.discount_value !== undefined ? c.discount_value : c.discountValue) || 0,
           min_order_amount: c.min_order_amount !== undefined ? c.min_order_amount : c.minSpend,
-          max_discount_amount: c.max_discount_amount !== undefined ? c.max_discount_amount : c.maxDiscount,
+          max_discount_amount:
+            c.max_discount_amount !== undefined ? c.max_discount_amount : c.maxDiscount,
           usage_limit: c.usage_limit !== undefined ? c.usage_limit : c.usageLimit,
           used_count: c.used_count || c.usageCount || 0,
-          is_active: c.is_active !== undefined ? c.is_active : c.isActive ?? true,
+          is_active: c.is_active !== undefined ? c.is_active : (c.isActive ?? true),
           starts_at: c.starts_at || null,
           expires_at: c.expires_at || null,
           created_at: c.created_at || c.createdAt || new Date().toISOString(),

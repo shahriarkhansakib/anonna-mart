@@ -9,7 +9,6 @@ import { PermissionService } from "../permissions/permission.service";
 
 export const settingsRouter = new Hono<{ Variables: AuthVariables }>();
 
-
 // GET /api/settings (Public store info, sensitive connectors scrubbed for non-staff)
 settingsRouter.get("/", async (c) => {
   const key = c.req.query("key");
@@ -86,8 +85,8 @@ settingsRouter.get("/", async (c) => {
       storeSettings: settings.storeSettings || defaultStoreSettings,
       shippingSettings: settings.shippingSettings || defaultShippingSettings,
       orderSettings: settings.orderSettings || defaultOrderSettings,
-      notificationSettings: isStaff ? (settings.notificationSettings || {}) : {},
-      connectors: isStaff ? (settings.connectors || {}) : {},
+      notificationSettings: isStaff ? settings.notificationSettings || {} : {},
+      connectors: isStaff ? settings.connectors || {} : {},
     },
   });
 });
@@ -110,11 +109,21 @@ settingsRouter.post("/", requireAuth, requirePermission("settings:manage"), asyn
     const [updated] = await db
       .update(adminSettings)
       .set({
-        storeSettings: body.storeSettings ? { ...(existing.storeSettings || {}), ...body.storeSettings } : existing.storeSettings,
-        shippingSettings: body.shippingSettings ? { ...(existing.shippingSettings || {}), ...body.shippingSettings } : existing.shippingSettings,
-        orderSettings: body.orderSettings ? { ...(existing.orderSettings || {}), ...body.orderSettings } : existing.orderSettings,
-        notificationSettings: body.notificationSettings ? { ...(existing.notificationSettings || {}), ...body.notificationSettings } : existing.notificationSettings,
-        connectors: body.connectors ? { ...(existing.connectors || {}), ...body.connectors } : existing.connectors,
+        storeSettings: body.storeSettings
+          ? { ...(existing.storeSettings || {}), ...body.storeSettings }
+          : existing.storeSettings,
+        shippingSettings: body.shippingSettings
+          ? { ...(existing.shippingSettings || {}), ...body.shippingSettings }
+          : existing.shippingSettings,
+        orderSettings: body.orderSettings
+          ? { ...(existing.orderSettings || {}), ...body.orderSettings }
+          : existing.orderSettings,
+        notificationSettings: body.notificationSettings
+          ? { ...(existing.notificationSettings || {}), ...body.notificationSettings }
+          : existing.notificationSettings,
+        connectors: body.connectors
+          ? { ...(existing.connectors || {}), ...body.connectors }
+          : existing.connectors,
         updatedAt: new Date(),
       })
       .where(eq(adminSettings.id, "default"))

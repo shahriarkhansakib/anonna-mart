@@ -59,7 +59,9 @@ returnsRouter.patch("/:id", async (c) => {
   if (body.notes !== undefined) updateData.notes = body.notes;
   if (body.restocked !== undefined) updateData.restocked = !!body.restocked;
   if (body.refund_amount !== undefined || body.refundAmount !== undefined) {
-    updateData.refundAmount = Number(body.refund_amount !== undefined ? body.refund_amount : body.refundAmount);
+    updateData.refundAmount = Number(
+      body.refund_amount !== undefined ? body.refund_amount : body.refundAmount,
+    );
   }
 
   const [updated] = await db

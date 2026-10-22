@@ -84,12 +84,39 @@ couponsRouter.post("/", requireAuth, requirePermission("coupons:manage"), async 
       code: body.code.toUpperCase(),
       description: body.description || null,
       discountType: body.discount_type || body.discountType || "percentage",
-      discountValue: Number(body.discount_value !== undefined ? body.discount_value : body.discountValue),
-      minSpend: body.min_order_amount !== undefined ? (body.min_order_amount ? Number(body.min_order_amount) : null) : (body.minSpend ? Number(body.minSpend) : null),
-      maxDiscount: body.max_discount_amount !== undefined ? (body.max_discount_amount ? Number(body.max_discount_amount) : null) : (body.maxDiscount ? Number(body.maxDiscount) : null),
-      usageLimit: body.usage_limit !== undefined ? (body.usage_limit ? Number(body.usage_limit) : null) : (body.usageLimit ? Number(body.usageLimit) : null),
+      discountValue: Number(
+        body.discount_value !== undefined ? body.discount_value : body.discountValue,
+      ),
+      minSpend:
+        body.min_order_amount !== undefined
+          ? body.min_order_amount
+            ? Number(body.min_order_amount)
+            : null
+          : body.minSpend
+            ? Number(body.minSpend)
+            : null,
+      maxDiscount:
+        body.max_discount_amount !== undefined
+          ? body.max_discount_amount
+            ? Number(body.max_discount_amount)
+            : null
+          : body.maxDiscount
+            ? Number(body.maxDiscount)
+            : null,
+      usageLimit:
+        body.usage_limit !== undefined
+          ? body.usage_limit
+            ? Number(body.usage_limit)
+            : null
+          : body.usageLimit
+            ? Number(body.usageLimit)
+            : null,
       isActive: body.is_active !== undefined ? !!body.is_active : body.isActive !== false,
-      expiresAt: body.expires_at ? new Date(body.expires_at) : body.expiresAt ? new Date(body.expiresAt) : null,
+      expiresAt: body.expires_at
+        ? new Date(body.expires_at)
+        : body.expiresAt
+          ? new Date(body.expiresAt)
+          : null,
     })
     .returning();
 
@@ -108,14 +135,17 @@ couponsRouter.patch("/:id", requireAuth, requirePermission("coupons:manage"), as
     updateData.discountType = body.discount_type || body.discountType;
   }
   if (body.discount_value !== undefined || body.discountValue !== undefined) {
-    updateData.discountValue = Number(body.discount_value !== undefined ? body.discount_value : body.discountValue);
+    updateData.discountValue = Number(
+      body.discount_value !== undefined ? body.discount_value : body.discountValue,
+    );
   }
   if (body.min_order_amount !== undefined || body.minSpend !== undefined) {
     const val = body.min_order_amount !== undefined ? body.min_order_amount : body.minSpend;
     updateData.minSpend = val ? Number(val) : null;
   }
   if (body.max_discount_amount !== undefined || body.maxDiscount !== undefined) {
-    const val = body.max_discount_amount !== undefined ? body.max_discount_amount : body.maxDiscount;
+    const val =
+      body.max_discount_amount !== undefined ? body.max_discount_amount : body.maxDiscount;
     updateData.maxDiscount = val ? Number(val) : null;
   }
   if (body.usage_limit !== undefined || body.usageLimit !== undefined) {
@@ -130,11 +160,7 @@ couponsRouter.patch("/:id", requireAuth, requirePermission("coupons:manage"), as
     updateData.expiresAt = val ? new Date(val) : null;
   }
 
-  const [updated] = await db
-    .update(coupons)
-    .set(updateData)
-    .where(eq(coupons.id, id))
-    .returning();
+  const [updated] = await db.update(coupons).set(updateData).where(eq(coupons.id, id)).returning();
 
   return c.json({ success: true, data: formatCoupon(updated) });
 });

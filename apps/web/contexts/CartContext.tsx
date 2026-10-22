@@ -22,15 +22,18 @@ interface CartContextType {
   setIsCartOpen: (open: boolean) => void;
   openCart: () => void;
   closeCart: () => void;
-  addItem: (product: {
-    id: string;
-    name: string;
-    price: number;
-    originalPrice?: number | null;
-    image?: string | null;
-    stock?: number;
-    category?: string;
-  }, quantity?: number) => void;
+  addItem: (
+    product: {
+      id: string;
+      name: string;
+      price: number;
+      originalPrice?: number | null;
+      image?: string | null;
+      stock?: number;
+      category?: string;
+    },
+    quantity?: number,
+  ) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -91,9 +94,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
         return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item,
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item,
         );
       }
       return [
@@ -125,9 +126,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       removeItem(productId);
       return;
     }
-    setItems((prev) =>
-      prev.map((item) => (item.id === productId ? { ...item, quantity } : item)),
-    );
+    setItems((prev) => prev.map((item) => (item.id === productId ? { ...item, quantity } : item)));
   };
 
   const clearCart = () => {

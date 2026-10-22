@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 import React from "react";
+import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 
 export const metadata: Metadata = {
   title: {

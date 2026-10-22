@@ -1,38 +1,38 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, Package, ShoppingBag, Users, ArrowRight, X } from 'lucide-react';
-import { formatTaka } from '@/components/storefront/types';
-import { useQuery } from '@tanstack/react-query';
-import { productsApi, type ProductItem } from '@/lib/api/products';
-import { ordersApi, type OrderItem } from '@/lib/api/orders';
+import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, Package, Search, ShoppingBag, Users, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { formatTaka } from "@/components/storefront/types";
+import { type OrderItem, ordersApi } from "@/lib/api/orders";
+import { type ProductItem, productsApi } from "@/lib/api/products";
 
 export function SearchPalette() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
 
   // Shortcut listener (Ctrl+K or Cmd+K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setIsOpen((prev) => !prev);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   const { data: productsRes } = useQuery({
-    queryKey: ['palette-products'],
+    queryKey: ["palette-products"],
     queryFn: () => productsApi.list(),
     enabled: isOpen,
   });
 
   const { data: ordersRes } = useQuery({
-    queryKey: ['palette-orders'],
+    queryKey: ["palette-orders"],
     queryFn: () => ordersApi.list(),
     enabled: isOpen,
   });
@@ -49,7 +49,7 @@ export function SearchPalette() {
           (p) =>
             p.name.toLowerCase().includes(trimmed) ||
             p.sku?.toLowerCase().includes(trimmed) ||
-            p.category?.toLowerCase().includes(trimmed)
+            p.category?.toLowerCase().includes(trimmed),
         )
         .slice(0, 4)
     : [];
@@ -60,14 +60,14 @@ export function SearchPalette() {
           (o) =>
             (o.orderNumber && o.orderNumber.toLowerCase().includes(trimmed)) ||
             (o.customerName && o.customerName.toLowerCase().includes(trimmed)) ||
-            (o.customerPhone && o.customerPhone.includes(trimmed))
+            (o.customerPhone && o.customerPhone.includes(trimmed)),
         )
         .slice(0, 4)
     : [];
 
   const navigateTo = (path: string) => {
     setIsOpen(false);
-    setQuery('');
+    setQuery("");
     router.push(path);
   };
 
@@ -93,7 +93,7 @@ export function SearchPalette() {
           />
           {query && (
             <button
-              onClick={() => setQuery('')}
+              onClick={() => setQuery("")}
               className="p-1 text-slate-400 hover:text-slate-600 rounded-md"
             >
               <X className="w-4 h-4" />
@@ -111,28 +111,28 @@ export function SearchPalette() {
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <button
                   type="button"
-                  onClick={() => navigateTo('/admin/products')}
+                  onClick={() => navigateTo("/admin/products")}
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-brand-900 text-xs font-bold text-slate-700 hover:text-brand-900 transition-colors"
                 >
                   <Package className="w-4 h-4 text-brand-800" /> Products
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigateTo('/admin/orders')}
+                  onClick={() => navigateTo("/admin/orders")}
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-brand-900 text-xs font-bold text-slate-700 hover:text-brand-900 transition-colors"
                 >
                   <ShoppingBag className="w-4 h-4 text-brand-800" /> Orders
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigateTo('/admin/customers')}
+                  onClick={() => navigateTo("/admin/customers")}
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-brand-900 text-xs font-bold text-slate-700 hover:text-brand-900 transition-colors"
                 >
                   <Users className="w-4 h-4 text-brand-800" /> Customers
                 </button>
                 <button
                   type="button"
-                  onClick={() => navigateTo('/')}
+                  onClick={() => navigateTo("/")}
                   className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 hover:border-brand-900 text-xs font-bold text-slate-700 hover:text-brand-900 transition-colors"
                 >
                   <ArrowRight className="w-4 h-4 text-brand-800" /> Storefront
@@ -159,10 +159,14 @@ export function SearchPalette() {
                       <Package className="w-4 h-4 text-brand-800 shrink-0" />
                       <div>
                         <p className="text-xs font-bold text-slate-900">{p.name}</p>
-                        <p className="text-[11px] text-slate-400">SKU: {p.sku} · {p.category}</p>
+                        <p className="text-[11px] text-slate-400">
+                          SKU: {p.sku} · {p.category}
+                        </p>
                       </div>
                     </div>
-                    <span className="text-xs font-black text-brand-950">{formatTaka(Number(p.price))}</span>
+                    <span className="text-xs font-black text-brand-950">
+                      {formatTaka(Number(p.price))}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -186,8 +190,12 @@ export function SearchPalette() {
                     <div className="flex items-center gap-3">
                       <ShoppingBag className="w-4 h-4 text-brand-800 shrink-0" />
                       <div>
-                        <p className="font-mono text-xs font-bold text-slate-900">#{o.orderNumber || o.id}</p>
-                        <p className="text-[11px] text-slate-400">{o.customerName} · {o.customerPhone}</p>
+                        <p className="font-mono text-xs font-bold text-slate-900">
+                          #{o.orderNumber || o.id}
+                        </p>
+                        <p className="text-[11px] text-slate-400">
+                          {o.customerName} · {o.customerPhone}
+                        </p>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-brand-900 capitalize">{o.status}</span>

@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, Clock, Loader2, MapPin, Pencil, Plus, Trash2, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { deliveryZonesApi } from "@/lib/api/delivery-zones";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { RequireAdmin } from "@/components/admin/RequireAdmin";
 import { ShippingRulesEditor } from "@/components/admin/ShippingRulesEditor";
@@ -34,6 +33,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAdminRealtimeDashboard } from "@/hooks/useAdminRealtimeDashboard";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { deliveryZonesApi } from "@/lib/api/delivery-zones";
 import { getDivisions } from "@/lib/bangladeshRegions";
 import { useNavigate } from "@/lib/router-compat";
 
@@ -83,7 +83,7 @@ const AdminDeliveryZones = () => {
           charge: Number(d.charge !== undefined ? d.charge : d.standardFee || 60),
           delivery_fee: Number(d.delivery_fee !== undefined ? d.delivery_fee : d.standardFee || 60),
           estimated_days: d.estimated_days || d.estimatedDays || "2-4 days",
-          is_active: d.is_active !== undefined ? d.is_active : d.isActive ?? true,
+          is_active: d.is_active !== undefined ? d.is_active : (d.isActive ?? true),
           divisions: Array.isArray(d.divisions) ? d.divisions : ["Dhaka"],
           created_at: d.created_at || d.createdAt || new Date().toISOString(),
           updated_at: d.updated_at || d.updatedAt || new Date().toISOString(),

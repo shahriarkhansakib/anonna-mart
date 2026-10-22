@@ -1,14 +1,7 @@
-import {
-  auditLogs,
-  db,
-  orders,
-  roles,
-  userRoles,
-  users,
-} from "@growmate/db";
+import { randomUUID } from "node:crypto";
+import { auditLogs, db, orders, roles, userRoles, users } from "@growmate/db";
 import { and, count, desc, eq, ilike, or } from "drizzle-orm";
 import type { Context } from "hono";
-import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { logger } from "../../infra/lib/logger";
 import { PermissionService } from "../permissions/permission.service";
@@ -45,7 +38,6 @@ export class AdminController {
       }
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
-
 
       const [dataResult, countResult, allOrders] = await Promise.all([
         db
@@ -129,8 +121,11 @@ export class AdminController {
         return c.json({ error: "User not found" }, 404);
       }
 
-
-      const userOrders = await db.select().from(orders).where(eq(orders.userId, id)).orderBy(desc(orders.createdAt));
+      const userOrders = await db
+        .select()
+        .from(orders)
+        .where(eq(orders.userId, id))
+        .orderBy(desc(orders.createdAt));
       const totalSpent = userOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
       // Fetch user's assigned store roles
@@ -173,7 +168,9 @@ export class AdminController {
         .where(or(eq(users.role, "admin"), eq(users.role, "super_admin")));
 
       const staffWithRoles = staffUsers.map((staff) => {
-        const assignedRoleIds = allUserRoles.filter((ur) => ur.userId === staff.id).map((ur) => ur.roleId);
+        const assignedRoleIds = allUserRoles
+          .filter((ur) => ur.userId === staff.id)
+          .map((ur) => ur.roleId);
         const assignedRoleNames = assignedRoleIds
           .map((rid) => allRoles.find((r) => r.id === rid)?.name)
           .filter(Boolean);

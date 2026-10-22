@@ -51,7 +51,6 @@ async function syncSession() {
   try {
     const { data, error } = await (authClient as any).getSession();
     if (error) {
-
       state.user = null;
       state.session = null;
       state.loading = false;

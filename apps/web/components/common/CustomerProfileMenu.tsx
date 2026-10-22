@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   ChevronDown,
+  Heart,
   LayoutDashboard,
   LogOut,
   MapPin,
   Package,
-  Heart,
-  User,
   Shield,
-} from 'lucide-react';
-import { useSession, signOut } from '@/lib/auth-client';
-import { toast } from 'sonner';
+  User,
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { signOut, useSession } from "@/lib/auth-client";
 
 export function CustomerProfileMenu() {
   const router = useRouter();
@@ -24,23 +24,23 @@ export function CustomerProfileMenu() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const isAdmin = user && (user as any).role === 'admin';
-  const profileName: string = typeof user?.name === 'string' ? user.name : '';
+  const isAdmin = user && (user as any).role === "admin";
+  const profileName: string = typeof user?.name === "string" ? user.name : "";
   const initials = profileName
     ? profileName
         .split(/\s+/)
         .filter((part) => part.length > 0)
         .slice(0, 2)
         .map((part) => part[0])
-        .join('')
+        .join("")
         .toLocaleUpperCase()
-    : 'U';
+    : "U";
 
   useEffect(() => {
     if (!open) return;
 
     const closeMenu = (event: MouseEvent | KeyboardEvent) => {
-      if (event instanceof KeyboardEvent && event.key === 'Escape') {
+      if (event instanceof KeyboardEvent && event.key === "Escape") {
         setOpen(false);
       }
       if (
@@ -52,11 +52,11 @@ export function CustomerProfileMenu() {
       }
     };
 
-    document.addEventListener('mousedown', closeMenu);
-    document.addEventListener('keydown', closeMenu);
+    document.addEventListener("mousedown", closeMenu);
+    document.addEventListener("keydown", closeMenu);
     return () => {
-      document.removeEventListener('mousedown', closeMenu);
-      document.removeEventListener('keydown', closeMenu);
+      document.removeEventListener("mousedown", closeMenu);
+      document.removeEventListener("keydown", closeMenu);
     };
   }, [open]);
 
@@ -64,18 +64,16 @@ export function CustomerProfileMenu() {
     setOpen(false);
     try {
       await (signOut as any)();
-      toast.success('Signed out successfully');
-      router.push('/');
+      toast.success("Signed out successfully");
+      router.push("/");
       router.refresh();
     } catch {
-      toast.error('Failed to sign out. Please try again.');
+      toast.error("Failed to sign out. Please try again.");
     }
   };
 
   if (isPending) {
-    return (
-      <div className="h-10 w-24 animate-pulse rounded-lg bg-slate-100" />
-    );
+    return <div className="h-10 w-24 animate-pulse rounded-lg bg-slate-100" />;
   }
 
   if (!user) {

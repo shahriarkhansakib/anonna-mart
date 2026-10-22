@@ -48,7 +48,7 @@ export interface CartLine {
 export function hasValidDiscount(product: StorefrontProduct): boolean {
   return Boolean(
     (product.discountActive || (product.originalPrice && product.originalPrice > product.price)) &&
-      typeof product.originalPrice === 'number' &&
+      typeof product.originalPrice === "number" &&
       product.originalPrice > product.price,
   );
 }
@@ -59,5 +59,5 @@ export function getDiscountPercent(product: StorefrontProduct): number {
 }
 
 export function formatTaka(amount: number): string {
-  return `৳${new Intl.NumberFormat('en-BD', { maximumFractionDigits: 0 }).format(amount)}`;
+  return `৳${new Intl.NumberFormat("en-BD", { maximumFractionDigits: 0 }).format(amount)}`;
 }

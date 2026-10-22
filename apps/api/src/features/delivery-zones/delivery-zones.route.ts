@@ -14,7 +14,9 @@ function formatZone(z: any) {
     zone_name: z.name,
     charge: z.standardFee,
     delivery_fee: z.standardFee,
-    estimated_days: z.estimatedDays || `${Math.ceil((z.estimatedDeliveryHours || 24) / 24)}-${Math.ceil((z.estimatedDeliveryHours || 24) / 24) + 2} days`,
+    estimated_days:
+      z.estimatedDays ||
+      `${Math.ceil((z.estimatedDeliveryHours || 24) / 24)}-${Math.ceil((z.estimatedDeliveryHours || 24) / 24) + 2} days`,
     is_active: z.isActive,
     divisions: Array.isArray(z.divisions) ? z.divisions : [],
     created_at: z.createdAt ? new Date(z.createdAt).toISOString() : new Date().toISOString(),
@@ -33,7 +35,13 @@ deliveryZonesRouter.post("/", requireAuth, requirePermission("delivery:manage"),
   const body = await c.req.json();
   const id = body.id || randomUUID();
   const name = body.zone_name || body.name || "Delivery Zone";
-  const standardFee = Number(body.charge !== undefined ? body.charge : body.delivery_fee !== undefined ? body.delivery_fee : body.standardFee || 60);
+  const standardFee = Number(
+    body.charge !== undefined
+      ? body.charge
+      : body.delivery_fee !== undefined
+        ? body.delivery_fee
+        : body.standardFee || 60,
+  );
 
   const [zone] = await db
     .insert(deliveryZones)
@@ -67,8 +75,18 @@ deliveryZonesRouter.patch("/:id", requireAuth, requirePermission("delivery:manag
     updateData.name = body.zone_name || body.name;
   }
   if (body.district !== undefined) updateData.district = body.district;
-  if (body.charge !== undefined || body.delivery_fee !== undefined || body.standardFee !== undefined) {
-    updateData.standardFee = Number(body.charge !== undefined ? body.charge : body.delivery_fee !== undefined ? body.delivery_fee : body.standardFee);
+  if (
+    body.charge !== undefined ||
+    body.delivery_fee !== undefined ||
+    body.standardFee !== undefined
+  ) {
+    updateData.standardFee = Number(
+      body.charge !== undefined
+        ? body.charge
+        : body.delivery_fee !== undefined
+          ? body.delivery_fee
+          : body.standardFee,
+    );
   }
   if (body.estimated_days !== undefined || body.estimatedDays !== undefined) {
     updateData.estimatedDays = body.estimated_days || body.estimatedDays;

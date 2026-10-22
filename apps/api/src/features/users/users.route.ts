@@ -31,8 +31,27 @@ function formatProfile(u: any, userOrders: any[] = []) {
 }
 
 // In-memory customer notes and store credits
-const customerNotesStore = new Map<string, Array<{ id: string; customer_user_id: string; author_id: string; content: string; created_at: string }>>();
-const customerCreditsStore = new Map<string, Array<{ id: string; customer_user_id: string; amount: number; reason: string; created_by: string; created_at: string }>>();
+const customerNotesStore = new Map<
+  string,
+  Array<{
+    id: string;
+    customer_user_id: string;
+    author_id: string;
+    content: string;
+    created_at: string;
+  }>
+>();
+const customerCreditsStore = new Map<
+  string,
+  Array<{
+    id: string;
+    customer_user_id: string;
+    amount: number;
+    reason: string;
+    created_by: string;
+    created_at: string;
+  }>
+>();
 
 // GET /api/users/me (Customer's own profile)
 usersRouter.get("/me", requireAuth, async (c) => {
@@ -42,7 +61,11 @@ usersRouter.get("/me", requireAuth, async (c) => {
     return c.json({ success: false, error: "User not found" }, 404);
   }
 
-  const userOrders = await db.select().from(orders).where(eq(orders.userId, user.id)).orderBy(desc(orders.createdAt));
+  const userOrders = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.userId, user.id))
+    .orderBy(desc(orders.createdAt));
   return c.json({ success: true, data: formatProfile(user, userOrders) });
 });
 
@@ -85,7 +108,11 @@ usersRouter.get("/:id", requireAuth, async (c) => {
     return c.json({ success: false, error: "User not found" }, 404);
   }
 
-  const userOrders = await db.select().from(orders).where(eq(orders.userId, id)).orderBy(desc(orders.createdAt));
+  const userOrders = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.userId, id))
+    .orderBy(desc(orders.createdAt));
   const formattedOrders = userOrders.map((o) => ({
     id: o.id,
     total_amount: o.totalAmount,

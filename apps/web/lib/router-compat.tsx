@@ -1,8 +1,15 @@
 "use client";
 
-import React, { forwardRef, type AnchorHTMLAttributes, type ReactNode, useEffect, useState, useCallback } from "react";
 import NextLink from "next/link";
-import { useRouter, usePathname, useParams as useNextParams } from "next/navigation";
+import { useParams as useNextParams, usePathname, useRouter } from "next/navigation";
+import React, {
+  type AnchorHTMLAttributes,
+  forwardRef,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 
 export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> {
   to: string | { pathname?: string; search?: string; hash?: string };
@@ -14,7 +21,8 @@ export interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>,
 
 export const Link = forwardRef<HTMLAnchorElement, LinkProps>(
   ({ to, replace, className, children, ...rest }, ref) => {
-    const href = typeof to === "string" ? to : `${to.pathname || ""}${to.search || ""}${to.hash || ""}`;
+    const href =
+      typeof to === "string" ? to : `${to.pathname || ""}${to.search || ""}${to.hash || ""}`;
     return (
       <NextLink ref={ref} href={href} replace={replace} className={className} {...rest}>
         {children}
@@ -57,7 +65,10 @@ export function useLocation() {
   };
 }
 
-export function useSearchParams(): readonly [URLSearchParams, (params: Record<string, string> | URLSearchParams) => void] {
+export function useSearchParams(): readonly [
+  URLSearchParams,
+  (params: Record<string, string> | URLSearchParams) => void,
+] {
   const router = useRouter();
   const pathname = usePathname();
   const [params, setParams] = useState<URLSearchParams>(

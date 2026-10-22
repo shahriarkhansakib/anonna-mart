@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface WishlistContextType {
   wishlistIds: string[];
@@ -13,7 +13,7 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
-const WISHLIST_STORAGE_KEY = 'anonna_storefront_wishlist';
+const WISHLIST_STORAGE_KEY = "anonna_storefront_wishlist";
 
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
@@ -47,10 +47,10 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setWishlistIds((prev) => {
       const exists = prev.includes(productId);
       if (exists) {
-        toast.info(productName ? `Removed ${productName} from wishlist` : 'Removed from wishlist');
+        toast.info(productName ? `Removed ${productName} from wishlist` : "Removed from wishlist");
         return prev.filter((id) => id !== productId);
       } else {
-        toast.success(productName ? `Added ${productName} to wishlist` : 'Added to wishlist');
+        toast.success(productName ? `Added ${productName} to wishlist` : "Added to wishlist");
         return [...prev, productId];
       }
     });
@@ -82,7 +82,7 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const useWishlist = () => {
   const context = useContext(WishlistContext);
   if (!context) {
-    throw new Error('useWishlist must be used within a WishlistProvider');
+    throw new Error("useWishlist must be used within a WishlistProvider");
   }
   return context;
 };

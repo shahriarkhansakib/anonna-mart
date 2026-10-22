@@ -40,7 +40,6 @@ export class PermissionService {
       return permSet;
     }
 
-
     // 3. Fetch User's Assigned Store Roles
     const userRoleMappings = await db.select().from(userRoles).where(eq(userRoles.userId, userId));
     const roleIds = userRoleMappings.map((ur) => ur.roleId);

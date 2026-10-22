@@ -26,10 +26,7 @@ describe("Store Auth & PBAC Security Architecture", () => {
       });
 
       expect(nextCalled).toBe(false);
-      expect(jsonMock).toHaveBeenCalledWith(
-        expect.objectContaining({ error: "Forbidden" }),
-        403,
-      );
+      expect(jsonMock).toHaveBeenCalledWith(expect.objectContaining({ error: "Forbidden" }), 403);
     });
 
     it("should allow users meeting the required role level", async () => {

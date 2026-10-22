@@ -31,17 +31,24 @@ export const supportApi = {
   listConversations: () =>
     apiFetch<{ success: boolean; data: SupportConversationItem[] }>("/api/support/conversations"),
 
-  createConversation: (data: { customer_name?: string; customer_email?: string; user_id?: string }) =>
+  createConversation: (data: {
+    customer_name?: string;
+    customer_email?: string;
+    user_id?: string;
+  }) =>
     apiFetch<{ success: boolean; data: SupportConversationItem }>("/api/support/conversations", {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
   updateConversation: (id: string, data: { status?: string }) =>
-    apiFetch<{ success: boolean; data: SupportConversationItem }>(`/api/support/conversations/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(data),
-    }),
+    apiFetch<{ success: boolean; data: SupportConversationItem }>(
+      `/api/support/conversations/${id}`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      },
+    ),
 
   deleteConversation: (id: string) =>
     apiFetch<{ success: boolean }>(`/api/support/conversations/${id}`, {

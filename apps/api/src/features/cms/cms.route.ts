@@ -7,7 +7,6 @@ import { requirePermission } from "../../infra/middleware/require-permission";
 
 export const cmsRouter = new Hono();
 
-
 function formatArticle(a: any) {
   if (!a) return a;
   return {
@@ -105,7 +104,6 @@ cmsRouter.delete("/articles/:id", requireAuth, requirePermission("cms:manage"), 
   await db.delete(cmsArticles).where(eq(cmsArticles.id, id));
   return c.json({ success: true });
 });
-
 
 // GET /api/cms/stats
 cmsRouter.get("/stats", async (c) => {

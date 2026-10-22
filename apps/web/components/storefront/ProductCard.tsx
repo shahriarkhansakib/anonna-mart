@@ -1,14 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { Heart, ShoppingBag, Star } from 'lucide-react';
-import {
-  formatTaka,
-  getDiscountPercent,
-  hasValidDiscount,
-  type StorefrontProduct,
-} from './types';
+import { Heart, ShoppingBag, Star } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { formatTaka, getDiscountPercent, hasValidDiscount, type StorefrontProduct } from "./types";
 
 export function ProductImage({
   src,
@@ -33,7 +28,7 @@ export function ProductImage({
     );
   }
 
-  if (src.startsWith('/')) {
+  if (src.startsWith("/")) {
     return (
       <Image
         src={src}
@@ -47,13 +42,7 @@ export function ProductImage({
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={alt}
-      loading="lazy"
-      onError={() => setFailed(true)}
-      className={className}
-    />
+    <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} className={className} />
   );
 }
 
@@ -101,13 +90,17 @@ export function ProductCard({
         <button
           type="button"
           onClick={() => onToggleWishlist(product.id)}
-          aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+          aria-label={
+            wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`
+          }
           aria-pressed={wished}
           className={`absolute right-2.5 top-2.5 inline-flex h-9 w-9 items-center justify-center rounded-full border bg-card/90 backdrop-blur shadow-sm transition-colors hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 ${
-            wished ? 'border-rose-400 text-rose-500' : 'border-border text-muted-foreground hover:text-rose-500'
+            wished
+              ? "border-rose-400 text-rose-500"
+              : "border-border text-muted-foreground hover:text-rose-500"
           }`}
         >
-          <Heart className={`h-4 w-4 ${wished ? 'fill-current' : ''}`} aria-hidden="true" />
+          <Heart className={`h-4 w-4 ${wished ? "fill-current" : ""}`} aria-hidden="true" />
         </button>
       </div>
 
@@ -128,7 +121,7 @@ export function ProductCard({
           {product.name}
         </button>
 
-        {typeof product.rating === 'number' && (
+        {typeof product.rating === "number" && (
           <p
             className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground"
             aria-label={`Rated ${product.rating.toFixed(1)} out of 5`}
@@ -160,7 +153,7 @@ export function ProductCard({
             className="mt-3 inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground transition-all hover:opacity-90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground sm:text-sm"
           >
             <ShoppingBag className="h-4 w-4 shrink-0" aria-hidden="true" />
-            {soldOut ? 'Out of Stock' : 'Add to cart'}
+            {soldOut ? "Out of Stock" : "Add to cart"}
           </button>
         </div>
       </div>
@@ -175,5 +168,11 @@ export function ProductThumbnail({
   product: StorefrontProduct;
   className: string;
 }) {
-  return <ProductImage src={product.image || product.images?.[0]} alt={product.name} className={className} />;
+  return (
+    <ProductImage
+      src={product.image || product.images?.[0]}
+      alt={product.name}
+      className={className}
+    />
+  );
 }

@@ -7,11 +7,11 @@ import { requirePermission } from "../../infra/middleware/require-permission";
 
 export const productsRouter = new Hono();
 
-
 // Helper to format product for UI (provides both camelCase and snake_case compatibility)
 function formatProduct(p: any) {
   if (!p) return p;
-  const imageUrl = Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : (p.imageUrl || null);
+  const imageUrl =
+    Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : p.imageUrl || null;
   return {
     ...p,
     stock: p.stockQuantity ?? 0,
@@ -61,11 +61,16 @@ productsRouter.post("/categories", requireAuth, requirePermission("products:crea
 });
 
 // DELETE /api/products/categories/:id
-productsRouter.delete("/categories/:id", requireAuth, requirePermission("products:delete"), async (c) => {
-  const id = c.req.param("id");
-  await db.delete(categories).where(eq(categories.id, id));
-  return c.json({ success: true, message: "Category deleted" });
-});
+productsRouter.delete(
+  "/categories/:id",
+  requireAuth,
+  requirePermission("products:delete"),
+  async (c) => {
+    const id = c.req.param("id");
+    await db.delete(categories).where(eq(categories.id, id));
+    return c.json({ success: true, message: "Category deleted" });
+  },
+);
 
 // POST /api/products/batch-stock (bulk stock updates from Admin Inventory)
 productsRouter.post("/batch-stock", requireAuth, requirePermission("products:edit"), async (c) => {
@@ -150,7 +155,12 @@ productsRouter.post("/", requireAuth, requirePermission("products:create"), asyn
   }
 
   const stock = body.stock !== undefined ? Number(body.stock) : Number(body.stockQuantity || 0);
-  const originalPrice = body.compare_price !== undefined ? Number(body.compare_price) : body.originalPrice !== undefined ? Number(body.originalPrice) : null;
+  const originalPrice =
+    body.compare_price !== undefined
+      ? Number(body.compare_price)
+      : body.originalPrice !== undefined
+        ? Number(body.originalPrice)
+        : null;
 
   const [newProd] = await db
     .insert(products)
@@ -182,7 +192,6 @@ productsRouter.patch("/:id", requireAuth, requirePermission("products:edit"), as
   const id = c.req.param("id");
   const body = await c.req.json();
 
-
   const updateData: any = {
     updatedAt: new Date(),
   };
@@ -192,17 +201,18 @@ productsRouter.patch("/:id", requireAuth, requirePermission("products:edit"), as
   if (body.price !== undefined) updateData.price = Number(body.price);
   if (body.compare_price !== undefined) updateData.originalPrice = Number(body.compare_price);
   else if (body.originalPrice !== undefined) updateData.originalPrice = Number(body.originalPrice);
-  
+
   if (body.stock !== undefined) updateData.stockQuantity = Number(body.stock);
   else if (body.stockQuantity !== undefined) updateData.stockQuantity = Number(body.stockQuantity);
 
-  if (body.lowStockThreshold !== undefined) updateData.lowStockThreshold = Number(body.lowStockThreshold);
+  if (body.lowStockThreshold !== undefined)
+    updateData.lowStockThreshold = Number(body.lowStockThreshold);
   if (body.sku !== undefined) updateData.sku = body.sku;
   if (body.badge !== undefined) updateData.badge = body.badge;
   if (body.product_type !== undefined) updateData.productType = body.product_type;
   if (body.productType !== undefined) updateData.productType = body.productType;
   if (body.discount !== undefined) updateData.discount = Number(body.discount);
-  
+
   if (body.is_featured !== undefined) updateData.isFeatured = !!body.is_featured;
   else if (body.isFeatured !== undefined) updateData.isFeatured = !!body.isFeatured;
 

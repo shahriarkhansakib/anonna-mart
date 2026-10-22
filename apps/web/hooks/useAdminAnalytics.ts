@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { analyticsApi, type AnalyticsOverview } from "@/lib/api/analytics";
+import { type AnalyticsOverview, analyticsApi } from "@/lib/api/analytics";
 import { useAdmin } from "./useAdmin";
 
 export type DateRangePreset = "today" | "7days" | "30days" | "90days" | "all";
@@ -60,15 +60,31 @@ export interface AnalyticsData {
   clinicStats: { total: number; verified: number; pending: number; blocked: number };
   totalDoctors: number;
   verifiedDoctors: number;
-  appointmentStats: { total: number; completed: number; confirmed: number; pending: number; cancelled: number };
+  appointmentStats: {
+    total: number;
+    completed: number;
+    confirmed: number;
+    pending: number;
+    cancelled: number;
+  };
   totalPosts: number;
   postsThisMonth: number;
   totalPets: number;
   totalProducts: number;
   lowStockProducts: LowStockProduct[];
   unreadMessages: number;
-  clinicVerificationFunnel: { not_submitted: number; pending: number; approved: number; rejected: number };
-  doctorVerificationFunnel: { not_submitted: number; pending: number; approved: number; rejected: number };
+  clinicVerificationFunnel: {
+    not_submitted: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+  };
+  doctorVerificationFunnel: {
+    not_submitted: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+  };
   fetchedAt: string;
 }
 

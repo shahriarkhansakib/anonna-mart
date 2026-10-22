@@ -54,28 +54,28 @@
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
   /* Anonna Mart Brand Palette (Forest Green & Warm Gold) */
-  --color-brand-950: #071A10;
-  --color-brand-900: #0F3821;
-  --color-brand-800: #14462A;
-  --color-brand-700: #1A4D2E;
-  --color-brand-600: #23653E;
-  --color-brand-500: #2D8050;
-  --color-brand-400: #40A36B;
-  --color-brand-300: #68C391;
-  --color-brand-200: #A1DEBD;
-  --color-brand-100: #D5F2E2;
-  --color-brand-50:  #F0F9F4;
+  --color-brand-950: #071a10;
+  --color-brand-900: #0f3821;
+  --color-brand-800: #14462a;
+  --color-brand-700: #1a4d2e;
+  --color-brand-600: #23653e;
+  --color-brand-500: #2d8050;
+  --color-brand-400: #40a36b;
+  --color-brand-300: #68c391;
+  --color-brand-200: #a1debd;
+  --color-brand-100: #d5f2e2;
+  --color-brand-50: #f0f9f4;
 
-  --color-gold-900: #8A6E18;
-  --color-gold-800: #A98720;
-  --color-gold-700: #C29B27;
-  --color-gold-600: #D4AF37;
-  --color-gold-500: #DFC05A;
-  --color-gold-400: #E9D182;
-  --color-gold-300: #F1E1AB;
-  --color-gold-200: #F8F1D4;
-  --color-gold-100: #FDFBEF;
-  --color-gold-50:  #FFFEF8;
+  --color-gold-900: #8a6e18;
+  --color-gold-800: #a98720;
+  --color-gold-700: #c29b27;
+  --color-gold-600: #d4af37;
+  --color-gold-500: #dfc05a;
+  --color-gold-400: #e9d182;
+  --color-gold-300: #f1e1ab;
+  --color-gold-200: #f8f1d4;
+  --color-gold-100: #fdfbef;
+  --color-gold-50: #fffef8;
 
   --font-sans:
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "Plus Jakarta Sans", system-ui, sans-serif;

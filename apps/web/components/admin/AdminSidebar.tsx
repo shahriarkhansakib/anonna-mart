@@ -218,18 +218,31 @@ export const AdminSidebar = ({
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold tracking-tight text-foreground">GrowMate</span>
+                    <span className="text-[11px] font-bold tracking-tight text-foreground">
+                      GrowMate
+                    </span>
                     <span className="text-[9px] font-semibold px-1 rounded bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">
                       ADMIN
                     </span>
                   </div>
-                  <span className="text-[9px] text-muted-foreground truncate">Your Growth Partner</span>
+                  <span className="text-[9px] text-muted-foreground truncate">
+                    Your Growth Partner
+                  </span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="mx-auto my-1.5 h-7 w-7 rounded-md overflow-hidden bg-white shadow-xs p-0.5 flex items-center justify-center border border-black/5 dark:border-white/10" title="GrowMate Admin Suite">
-              <img src="/growmate-logo.png" alt="GrowMate" className="h-full w-full object-contain" width={22} height={22} />
+            <div
+              className="mx-auto my-1.5 h-7 w-7 rounded-md overflow-hidden bg-white shadow-xs p-0.5 flex items-center justify-center border border-black/5 dark:border-white/10"
+              title="GrowMate Admin Suite"
+            >
+              <img
+                src="/growmate-logo.png"
+                alt="GrowMate"
+                className="h-full w-full object-contain"
+                width={22}
+                height={22}
+              />
             </div>
           )}
 

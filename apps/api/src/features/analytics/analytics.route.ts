@@ -5,7 +5,6 @@ import { requireAuth } from "../../infra/middleware/auth";
 import { requirePermission } from "../../infra/middleware/require-permission";
 
 function subDays(date: Date, days: number): Date {
-
   const d = new Date(date);
   d.setDate(d.getDate() - days);
   return d;

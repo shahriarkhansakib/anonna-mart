@@ -9,7 +9,6 @@ import { redis } from "../../infra/lib/redis";
 import { ROLE_HIERARCHY } from "../../infra/middleware/role";
 import { PermissionService } from "../permissions/permission.service";
 
-
 const SecurityActionSchema = z.object({
   targetUserId: z.string().min(1, "Target User ID is required"),
   action: z.enum(["ban", "unban", "suspend", "unsuspend", "require_reset", "reset_mfa"]),
@@ -35,7 +34,10 @@ export class SecurityController {
 
       if (adminUser.id === targetUserId) {
         return c.json(
-          { error: "Conflict", message: "You cannot execute security actions on your own account." },
+          {
+            error: "Conflict",
+            message: "You cannot execute security actions on your own account.",
+          },
           409,
         );
       }
@@ -54,7 +56,8 @@ export class SecurityController {
         return c.json(
           {
             error: "Forbidden",
-            message: "Privilege escalation denied. You cannot modify a user with equal or higher role.",
+            message:
+              "Privilege escalation denied. You cannot modify a user with equal or higher role.",
           },
           403,
         );
@@ -100,7 +103,6 @@ export class SecurityController {
         }
       }
 
-
       // Invalidate permission cache
       await PermissionService.invalidateCache(targetUserId);
 
@@ -123,7 +125,10 @@ export class SecurityController {
       });
     } catch (err: any) {
       logger.error({ err: err.message }, "Security action failed");
-      return c.json({ error: "Internal Server Error", message: "Failed to apply security action." }, 500);
+      return c.json(
+        { error: "Internal Server Error", message: "Failed to apply security action." },
+        500,
+      );
     }
   }
 }

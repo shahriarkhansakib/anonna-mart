@@ -52,7 +52,12 @@ function SignUpForm() {
     if (!authLoading && user) {
       if (user.role === "admin" || user.role === "super_admin") {
         router.replace("/admin");
-      } else if (redirectUrl && redirectUrl !== "/" && !redirectUrl.includes("sign-up") && !redirectUrl.includes("signup")) {
+      } else if (
+        redirectUrl &&
+        redirectUrl !== "/" &&
+        !redirectUrl.includes("sign-up") &&
+        !redirectUrl.includes("signup")
+      ) {
         router.replace(redirectUrl);
       } else {
         router.replace("/account");
@@ -120,7 +125,12 @@ function SignUpForm() {
         description: "Welcome to Anonna Mart. You can now shop and track your orders.",
       });
 
-      if (redirectUrl && redirectUrl !== "/" && !redirectUrl.includes("sign-up") && !redirectUrl.includes("signup")) {
+      if (
+        redirectUrl &&
+        redirectUrl !== "/" &&
+        !redirectUrl.includes("sign-up") &&
+        !redirectUrl.includes("signup")
+      ) {
         router.replace(redirectUrl);
       } else {
         router.replace("/account");
@@ -134,10 +144,15 @@ function SignUpForm() {
   return (
     <div className="rounded-2xl border border-border bg-card p-7 sm:p-9 shadow-xl text-card-foreground transition-all">
       <h1 className="text-2xl font-bold tracking-tight text-foreground">Create your account</h1>
-      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">Join Anonna Mart for quick checkout and order tracking.</p>
+      <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+        Join Anonna Mart for quick checkout and order tracking.
+      </p>
 
       {errorMsg && (
-        <div role="alert" className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive font-medium">
+        <div
+          role="alert"
+          className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive font-medium"
+        >
           {errorMsg}
         </div>
       )}
@@ -163,7 +178,10 @@ function SignUpForm() {
 
       <form noValidate onSubmit={handleRegister} className="space-y-4">
         <div>
-          <label htmlFor="signup-name" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80">
+          <label
+            htmlFor="signup-name"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80"
+          >
             Full name
           </label>
           <input
@@ -180,7 +198,10 @@ function SignUpForm() {
         </div>
 
         <div>
-          <label htmlFor="signup-email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80">
+          <label
+            htmlFor="signup-email"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80"
+          >
             Email address
           </label>
           <input
@@ -197,7 +218,10 @@ function SignUpForm() {
         </div>
 
         <div>
-          <label htmlFor="signup-password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80">
+          <label
+            htmlFor="signup-password"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80"
+          >
             Password
           </label>
           <div className="relative">
@@ -218,14 +242,23 @@ function SignUpForm() {
               onClick={() => setShowPassword((curr) => !curr)}
               className="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
-              {showPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
           </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">Password requirements: at least 8 characters and 1 number.</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Password requirements: at least 8 characters and 1 number.
+          </p>
         </div>
 
         <div>
-          <label htmlFor="signup-confirm-password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80">
+          <label
+            htmlFor="signup-confirm-password"
+            className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-foreground/80"
+          >
             Confirm password
           </label>
           <div className="relative">
@@ -246,7 +279,11 @@ function SignUpForm() {
               onClick={() => setShowConfirmPassword((curr) => !curr)}
               className="absolute inset-y-0 right-0 inline-flex w-12 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
             >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" aria-hidden="true" /> : <Eye className="h-4 w-4" aria-hidden="true" />}
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>
@@ -261,11 +298,17 @@ function SignUpForm() {
 
         <p className="text-center text-[11px] leading-5 text-muted-foreground pt-1">
           By creating an account, you agree to Anonna Mart&apos;s{" "}
-          <Link href="/terms" className="text-emerald-600 dark:text-emerald-400 underline-offset-4 hover:underline font-medium">
+          <Link
+            href="/terms"
+            className="text-emerald-600 dark:text-emerald-400 underline-offset-4 hover:underline font-medium"
+          >
             Terms of Service
           </Link>{" "}
           and{" "}
-          <Link href="/privacy" className="text-emerald-600 dark:text-emerald-400 underline-offset-4 hover:underline font-medium">
+          <Link
+            href="/privacy"
+            className="text-emerald-600 dark:text-emerald-400 underline-offset-4 hover:underline font-medium"
+          >
             Privacy Policy
           </Link>
           .
