@@ -108,28 +108,35 @@ export const AdminHeader = ({
           </TooltipProvider>
 
           {/* Logo - Mobile Only */}
-          <Link to="/admin" className="md:hidden flex items-center gap-2 group">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 rounded-xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <Link to="/admin" className="md:hidden flex items-center gap-1.5 group">
+            <img
+              src={logo}
+              alt="Anonna Mart"
+              className="h-7 w-auto rounded-md object-contain bg-white shadow-2xs px-1.5 py-0.5 border border-primary/20"
+              loading="eager"
+              decoding="async"
+            />
+            <div className="flex items-center gap-1 pl-1.5 border-l border-border/40">
               <img
-                src={logo}
-                alt="Anonna Mart"
-                className="relative h-9 w-9 rounded-xl object-contain bg-white shadow-md border-2 border-primary/20 group-hover:border-primary/50 transition-all"
-                loading="eager"
-                decoding="async"
-                width={36}
-                height={36}
+                src="/growmate-logo.png"
+                alt="GrowMate"
+                className="h-5 w-5 rounded object-contain bg-white shadow-2xs p-0.5 border border-black/5"
               />
             </div>
-            <span className="font-display font-bold text-sm sm:text-base bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden xs:inline">
-              Admin
-            </span>
           </Link>
 
           {/* Page Title - Desktop */}
-          <div className="hidden md:block">
-            <h1 className="text-base lg:text-lg font-display font-bold text-foreground">{title}</h1>
-            {subtitle && <p className="text-xs text-muted-foreground line-clamp-1">{subtitle}</p>}
+          <div className="hidden md:flex items-center gap-3">
+            <div>
+              <h1 className="text-base lg:text-lg font-display font-bold text-foreground">{title}</h1>
+              {subtitle && <p className="text-xs text-muted-foreground line-clamp-1">{subtitle}</p>}
+            </div>
+            <div className="hidden xl:flex items-center gap-1.5 pl-3 border-l border-border/50 py-0.5">
+              <div className="h-5 w-5 rounded overflow-hidden bg-white shadow-2xs p-0.5 flex items-center justify-center border border-black/5 dark:border-white/10 shrink-0">
+                <img src="/growmate-logo.png" alt="GrowMate" className="h-full w-full object-contain" width={20} height={20} />
+              </div>
+              <span className="text-[11px] font-semibold text-muted-foreground">GrowMate Admin</span>
+            </div>
           </div>
         </div>
 

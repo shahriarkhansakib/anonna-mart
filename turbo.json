@@ -1,5 +1,24 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "DATABASE_URL_UNPOOLED",
+    "REDIS_URL",
+    "UPSTASH_URL",
+    "UPSTASH_TOKEN",
+    "UPSTASH_REDIS_REST_URL",
+    "UPSTASH_REDIS_REST_TOKEN",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "NEXT_PUBLIC_APP_URL",
+    "NEXT_PUBLIC_API_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "RESEND_API_KEY",
+    "STEADFAST_API_KEY",
+    "STEADFAST_SECRET_KEY"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

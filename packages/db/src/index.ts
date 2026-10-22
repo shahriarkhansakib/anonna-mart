@@ -1,8 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import * as schema from "./schema/index";
 
 if (!process.env.DATABASE_URL) {
@@ -24,9 +22,27 @@ if (!process.env.DATABASE_URL) {
 
 const DATABASE_URL =
   process.env.DATABASE_URL || "postgresql://postgres:password@localhost:5434/growmate_db";
+const isProd = process.env.NODE_ENV === "production";
 
-const client = postgres(DATABASE_URL);
-export const db = drizzle(client, { schema });
+function createDb() {
+  const postgres = require("postgres");
+  const { drizzle: drizzlePostgres } = require("drizzle-orm/postgres-js");
+
+  // When connecting to Neon database or SSL-enabled Postgres:
+  // Neon pgBouncer pooler (-pooler.xxx.neon.tech) requires prepare: false
+  const isNeon = DATABASE_URL.includes("neon.tech");
+  const client = postgres(DATABASE_URL, {
+    prepare: !isNeon,
+    max: isProd ? 1 : 10,
+    idle_timeout: 20,
+    connect_timeout: 15,
+    ssl: isNeon || DATABASE_URL.includes("sslmode=require") ? "require" : undefined,
+  });
+
+  return drizzlePostgres(client, { schema });
+}
+
+export const db = createDb();
 
 export * from "./schema/index";
 export * from "./permissions-registry";
