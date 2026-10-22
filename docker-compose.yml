@@ -1,0 +1,44 @@
+services:
+  # -----------------------------------------
+  # PostgreSQL Database for GrowMate
+  # -----------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: growmate_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: growmate_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - growmate_pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # -----------------------------------------
+  # Redis Cache / Session Store for GrowMate
+  # -----------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: growmate_redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - growmate_redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    restart: unless-stopped
+
+  # -----------------------------------------
+  # Mailpit (Local Email Catcher)
+  # -----------------------------------------
+  mailpit:
+    image: axllent/mailpit
+    container_name: growmate_mailpit
+    ports:
+      - "1026:1025" # SMTP Port
+      - "8026:8025" # Web UI Port
+    restart: unless-stopped
+
+volumes:
+  growmate_pg_data:
+  growmate_redis_data:

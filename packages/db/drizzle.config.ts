@@ -1,0 +1,29 @@
+import fs from "node:fs";
+import path from "node:path";
+import dotenv from "dotenv";
+import { defineConfig } from "drizzle-kit";
+
+// Search candidate env paths (apps/web/.env.local, root .env.local, etc.)
+const candidatePaths = [
+  path.resolve(process.cwd(), ".env.local"),
+  path.resolve(process.cwd(), ".env"),
+  path.resolve(__dirname, "../../apps/web/.env.local"),
+  path.resolve(__dirname, "../../apps/web/.env"),
+  path.resolve(__dirname, "../../.env.local"),
+  path.resolve(__dirname, "../../.env"),
+];
+
+for (const p of candidatePaths) {
+  if (fs.existsSync(p)) {
+    dotenv.config({ path: p });
+  }
+}
+
+export default defineConfig({
+  schema: "./src/schema/index.ts",
+  out: "./drizzle",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.DATABASE_URL || "postgresql://postgres:password@localhost:5434/growmate_db",
+  },
+});

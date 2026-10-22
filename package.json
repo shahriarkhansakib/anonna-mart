@@ -1,0 +1,28 @@
+{
+  "name": "growmate",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.27.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "format": "biome format --write .",
+    "check": "biome check --write .",
+    "check:ci": "biome ci .",
+    "test": "turbo run test",
+    "db:push": "pnpm --filter @growmate/db push --force",
+    "db:studio": "pnpm --filter @growmate/db studio",
+    "db:generate": "pnpm --filter @growmate/db generate",
+    "db:reset": "docker compose down -v --remove-orphans && docker compose up -d && node -e \"setTimeout(()=>{},3000)\" && pnpm db:push && pnpm db:seed",
+    "db:seed": "pnpm --filter @growmate/db seed && pnpm --filter @growmate/api seed:admin",
+    "db:seed:admin": "pnpm --filter @growmate/api seed:admin"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "turbo": "^2.9.6",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,732 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@source "..";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-coral: hsl(var(--coral));
+  --color-coral-light: hsl(var(--coral-light));
+  --color-coral-dark: hsl(var(--coral-dark));
+  --color-mint: hsl(var(--mint));
+  --color-mint-light: hsl(var(--mint-light));
+  --color-sky: hsl(var(--sky));
+  --color-sky-light: hsl(var(--sky-light));
+  --color-lavender: hsl(var(--lavender));
+  --color-lavender-light: hsl(var(--lavender-light));
+  --color-sunshine: hsl(var(--sunshine));
+  --color-sunshine-light: hsl(var(--sunshine-light));
+  --color-peach: hsl(var(--peach));
+  --color-cream: hsl(var(--cream));
+  --color-success: hsl(var(--success));
+  --color-success-light: hsl(var(--success-light));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-light: hsl(var(--warning-light));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  /* Anonna Mart Brand Palette (Forest Green & Warm Gold) */
+  --color-brand-950: #071A10;
+  --color-brand-900: #0F3821;
+  --color-brand-800: #14462A;
+  --color-brand-700: #1A4D2E;
+  --color-brand-600: #23653E;
+  --color-brand-500: #2D8050;
+  --color-brand-400: #40A36B;
+  --color-brand-300: #68C391;
+  --color-brand-200: #A1DEBD;
+  --color-brand-100: #D5F2E2;
+  --color-brand-50:  #F0F9F4;
+
+  --color-gold-900: #8A6E18;
+  --color-gold-800: #A98720;
+  --color-gold-700: #C29B27;
+  --color-gold-600: #D4AF37;
+  --color-gold-500: #DFC05A;
+  --color-gold-400: #E9D182;
+  --color-gold-300: #F1E1AB;
+  --color-gold-200: #F8F1D4;
+  --color-gold-100: #FDFBEF;
+  --color-gold-50:  #FFFEF8;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-display:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "Plus Jakarta Sans", system-ui, sans-serif;
+  --breakpoint-xs: 480px;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
+  --shadow-card: var(--shadow-card);
+  --shadow-hover: var(--shadow-hover);
+  --shadow-button: var(--shadow-button);
+  --shadow-soft: var(--shadow-soft);
+  --shadow-glow: var(--shadow-glow);
+  --shadow-playful: var(--shadow-playful);
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-wiggle: wiggle 0.5s ease-in-out;
+  --animate-bounce-gentle: bounce-gentle 2s ease-in-out infinite;
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+/* Fonts loaded via index.html for better performance */
+
+@layer base {
+  :root {
+    /* Anonna Mart Organic Luxury Palette - Light Mode */
+    --background: 48 20% 98%;
+    --foreground: 150 40% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 150 40% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 40% 9%;
+
+    /* Signature Anonna Forest Green */
+    --primary: 150 60% 18%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Soft Natural Sage Secondary */
+    --secondary: 150 15% 94%;
+    --secondary-foreground: 150 45% 15%;
+
+    --muted: 150 12% 93%;
+    --muted-foreground: 150 10% 40%;
+
+    /* Anonna Warm Gold Accent */
+    --accent: 42 65% 52%;
+    --accent-foreground: 150 50% 10%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 14% 88%;
+    --input: 150 14% 88%;
+    --ring: 150 60% 25%;
+
+    --radius: 0.875rem;
+
+    /* Status colors */
+    --success: 152 65% 38%;
+    --success-light: 150 40% 92%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-light: 38 90% 90%;
+    --warning-foreground: 38 92% 20%;
+
+    /* Shadows */
+    --shadow-card: 0 1px 3px hsl(150 40% 9% / 0.04), 0 6px 20px -6px hsl(150 40% 9% / 0.07);
+    --shadow-hover: 0 10px 30px -10px hsl(150 40% 9% / 0.14);
+    --shadow-button: 0 2px 10px -2px hsl(150 60% 18% / 0.35);
+    --shadow-soft: 0 2px 14px -2px hsl(150 30% 20% / 0.08);
+    --shadow-glow: 0 0 24px hsl(150 60% 25% / 0.25);
+    --shadow-playful: 0 8px 30px -8px hsl(42 65% 52% / 0.25);
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 150 40% 10%;
+    --sidebar-primary: 150 60% 18%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 150 15% 94%;
+    --sidebar-accent-foreground: 150 40% 10%;
+    --sidebar-border: 150 14% 88%;
+    --sidebar-ring: 150 60% 25%;
+  }
+
+  .dark {
+    /* Anonna Mart Deep Luxury Palette - Dark Mode */
+    --background: 150 18% 6%;
+    --foreground: 150 15% 96%;
+
+    --card: 150 14% 10%;
+    --card-foreground: 150 15% 96%;
+
+    --popover: 150 14% 10%;
+    --popover-foreground: 150 15% 96%;
+
+    /* Luminous Emerald Green for Dark Mode */
+    --primary: 152 68% 46%;
+    --primary-foreground: 150 50% 6%;
+
+    --secondary: 150 12% 16%;
+    --secondary-foreground: 150 15% 92%;
+
+    --muted: 150 12% 14%;
+    --muted-foreground: 150 10% 68%;
+
+    /* Luminous Gold Accent */
+    --accent: 42 65% 55%;
+    --accent-foreground: 150 50% 6%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 12% 18%;
+    --input: 150 12% 18%;
+    --ring: 152 68% 46%;
+
+    --sidebar-background: 150 16% 8%;
+    --sidebar-foreground: 150 15% 92%;
+    --sidebar-primary: 152 68% 46%;
+    --sidebar-primary-foreground: 150 50% 6%;
+    --sidebar-accent: 150 12% 14%;
+    --sidebar-accent-foreground: 150 15% 96%;
+    --sidebar-border: 150 12% 18%;
+    --sidebar-ring: 152 68% 46%;
+
+    /* Dark mode status colors */
+    --success: 152 65% 40%;
+    --success-light: 150 40% 20%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 85% 50%;
+    --warning-light: 38 80% 20%;
+    --warning-foreground: 38 90% 90%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+
+    /* Improve text rendering */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold tracking-tight;
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Reduce animations for users who prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Improve tap highlight on mobile */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Ensure touch targets are large enough - 44px on mobile (WCAG), 32px on desktop */
+  button,
+  a,
+  [role="button"],
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+  }
+
+  @media (min-width: 768px) {
+    button,
+    a,
+    [role="button"],
+    input[type="checkbox"],
+    input[type="radio"] {
+      min-height: 32px;
+    }
+  }
+
+  /* Improve image rendering */
+  img {
+    content-visibility: auto;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    background: var(--gradient-primary);
+    @apply text-white shadow-button transition-all duration-300 hover:shadow-hover hover:-translate-y-0.5 hover:scale-[1.02];
+  }
+
+  .btn-accent {
+    background: var(--gradient-accent);
+    @apply text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 hover:scale-[1.02];
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all duration-200;
+  }
+
+  .btn-fun {
+    background: var(--gradient-fun);
+    @apply text-white shadow-playful transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:scale-[1.03];
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-hover hover:-translate-y-1 hover:scale-[1.01];
+  }
+
+  .card-playful {
+    @apply bg-card rounded-2xl shadow-card transition-all duration-300 hover:shadow-hover border-2 border-transparent hover:border-primary/20;
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .gradient-fun {
+    background: var(--gradient-fun);
+  }
+
+  .gradient-story {
+    background: var(--gradient-story);
+  }
+
+  .gradient-rainbow {
+    background: var(--gradient-rainbow);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(15 85% 60%), hsl(165 55% 50%));
+  }
+
+  .text-gradient-fun {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(15 85% 60%), hsl(270 60% 70%));
+  }
+
+  .badge-new {
+    @apply bg-accent/15 text-accent text-xs font-bold px-3 py-1.5 rounded-full;
+  }
+
+  .badge-hot {
+    @apply bg-primary/15 text-primary text-xs font-bold px-3 py-1.5 rounded-full;
+  }
+
+  .badge-rx {
+    @apply bg-destructive/10 text-destructive text-xs font-medium px-2.5 py-1 rounded-full;
+  }
+
+  .badge-sale {
+    @apply bg-accent/10 text-accent text-xs font-medium px-2.5 py-1 rounded-full;
+  }
+
+  .section-padding {
+    @apply py-16 md:py-24;
+  }
+
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-lg border border-border/50 shadow-soft;
+  }
+
+  /* Story ring animation */
+  .story-ring {
+    @apply ring-[3px] ring-offset-2 ring-offset-background;
+    background: var(--gradient-story);
+    animation: story-pulse 2s ease-in-out infinite;
+  }
+
+  .story-ring-viewed {
+    @apply ring-2 ring-muted-foreground/30 ring-offset-2 ring-offset-background;
+  }
+
+  /* Pet paw pattern background */
+  .paw-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cpath fill='%23f97316' fill-opacity='0.05' d='M30 15c2.5 0 4.5 2 4.5 4.5S32.5 24 30 24s-4.5-2-4.5-4.5S27.5 15 30 15zm-8 8c1.5 0 3 1.5 3 3s-1.5 3-3 3-3-1.5-3-3 1.5-3 3-3zm16 0c1.5 0 3 1.5 3 3s-1.5 3-3 3-3-1.5-3-3 1.5-3 3-3zm-8 6c4 0 8 4 8 8s-4 8-8 8-8-4-8-8 4-8 8-8z'/%3E%3C/svg%3E");
+  }
+
+  /* Avatar with gradient border */
+  .avatar-gradient {
+    @apply p-0.5 rounded-full;
+    background: var(--gradient-story);
+  }
+
+  /* Interactive like animation */
+  .like-pop {
+    animation: like-pop 0.3s ease-out;
+  }
+
+  /* Notification badge */
+  .notification-badge {
+    @apply absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground text-xs font-bold rounded-full flex items-center justify-center;
+    animation: badge-bounce 0.5s ease-out;
+  }
+}
+
+@layer utilities {
+  /* Screen reader only - visible on focus */
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-bounce-gentle {
+    animation: bounce-gentle 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce-gentle {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  .animate-wiggle {
+    animation: wiggle 0.5s ease-in-out;
+  }
+
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+
+    25% {
+      transform: rotate(-5deg);
+    }
+
+    75% {
+      transform: rotate(5deg);
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes story-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  @keyframes like-pop {
+    0% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.3);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes badge-bounce {
+    0% {
+      transform: scale(0);
+    }
+
+    50% {
+      transform: scale(1.2);
+    }
+
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  /* Scrollbar styling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Smooth scroll behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Animated gradient background */
+  @keyframes gradient-slow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-gradient-slow {
+    background-size: 200% 200%;
+    animation: gradient-slow 8s ease infinite;
+  }
+
+  /* Slim progress bar animation */
+  @keyframes progress-bar {
+    0% {
+      width: 0%;
+    }
+    20% {
+      width: 30%;
+    }
+    50% {
+      width: 60%;
+    }
+    80% {
+      width: 85%;
+    }
+    100% {
+      width: 95%;
+    }
+  }
+  .animate-progress-bar {
+    animation: progress-bar 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    will-change: width;
+  }
+
+  /* Page transition animation */
+  @keyframes page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-page-enter {
+    animation: page-enter 0.25s ease-out backwards;
+  }
+  @keyframes content-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .animate-content-in {
+    animation: content-in 0.15s ease-out backwards;
+  }
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+a,
+button,
+[role="button"] {
+  touch-action: manipulation;
+}
+body {
+  overscroll-behavior-y: none;
+}
+
+/* Card rendering isolation for performance */
+@layer components {
+  .card-contain {
+    contain: layout style paint;
+  }
+}
+
+/* Image fade-in transition helper */
+.img-fade-in {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.img-fade-in.loaded {
+  opacity: 1;
+}
+
+@keyframes shop-slide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+/* Hide scroll bars everywhere — scrolling still works */
+html,
+body,
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+html {
+  overflow-x: hidden;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Apple-style surface */
+@utility surface {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: 1.125rem;
+  box-shadow: var(--shadow-card);
+}
