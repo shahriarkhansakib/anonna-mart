@@ -3,7 +3,6 @@
   "globalEnv": [
     "NODE_ENV",
     "DATABASE_URL",
-    "DATABASE_URL_UNPOOLED",
     "REDIS_URL",
     "UPSTASH_URL",
     "UPSTASH_TOKEN",
@@ -17,7 +16,10 @@
     "GOOGLE_CLIENT_SECRET",
     "RESEND_API_KEY",
     "STEADFAST_API_KEY",
-    "STEADFAST_SECRET_KEY"
+    "STEADFAST_SECRET_KEY",
+    "TOKENHARBOR_API_KEY",
+    "TOKENHARBOR_BASE_URL",
+    "TOKENHARBOR_MODEL"
   ],
   "tasks": {
     "build": {

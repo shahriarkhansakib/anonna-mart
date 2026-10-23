@@ -2,8 +2,11 @@ import { randomUUID } from "node:crypto";
 import { chatConversations, chatMessages, db } from "@growmate/db";
 import { and, desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
+import type { AuthVariables } from "../../infra/middleware/auth";
+import { requireAuth } from "../../infra/middleware/auth";
+import { processAIChat } from "./ai-support.service";
 
-export const supportRouter = new Hono();
+export const supportRouter = new Hono<{ Variables: AuthVariables }>();
 
 // Helper to format conversation
 function formatConv(c: any, lastMsg?: any, unreadCount = 0) {
@@ -148,4 +151,60 @@ supportRouter.post("/conversations/:id/read", async (c) => {
     .where(and(eq(chatMessages.conversationId, conversationId), eq(chatMessages.isRead, false)));
 
   return c.json({ success: true });
+});
+
+// POST /api/support/ai-chat (GATED: Only authenticated users can chat with AI)
+supportRouter.post("/ai-chat", requireAuth, async (c) => {
+  const user = c.get("user");
+  const body = await c.req.json().catch(() => ({}));
+  const userMessage = (body.message || "").trim();
+
+  if (!userMessage) {
+    return c.json({ success: false, error: "Message content cannot be empty" }, 400);
+  }
+
+  // Find or create active conversation for this customer
+  let conversationId = body.conversationId || body.conversation_id;
+
+  if (!conversationId) {
+    const [existing] = await db
+      .select()
+      .from(chatConversations)
+      .where(and(eq(chatConversations.userId, user.id), eq(chatConversations.status, "open")))
+      .orderBy(desc(chatConversations.updatedAt))
+      .limit(1);
+
+    if (existing) {
+      conversationId = existing.id;
+    } else {
+      conversationId = randomUUID();
+      await db.insert(chatConversations).values({
+        id: conversationId,
+        userId: user.id,
+        customerName: user.name || user.fullName || "Valued Customer",
+        customerEmail: user.email || null,
+        status: "open",
+      });
+    }
+  }
+
+  const result = await processAIChat({
+    customer: {
+      id: user.id,
+      name: user.name || user.fullName || "Customer",
+      email: user.email,
+      phone: user.phone,
+    },
+    conversationId,
+    userMessage,
+  });
+
+  return c.json({
+    success: true,
+    data: {
+      conversationId,
+      message: result.message,
+      products: result.products,
+    },
+  });
 });

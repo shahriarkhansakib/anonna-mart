@@ -19,7 +19,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-3">
+      <div className="admin-shell min-h-screen flex flex-col items-center justify-center bg-background gap-3" data-admin="true">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
         <p className="text-sm text-muted-foreground font-medium">
           Verifying GrowMate store staff authorization...
@@ -30,7 +30,7 @@ export function AdminAuthGuard({ children }: { children: React.ReactNode }) {
 
   if (!isAdmin && !isStaff) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 text-center">
+      <div className="admin-shell min-h-screen flex flex-col items-center justify-center bg-background p-4 text-center" data-admin="true">
         <div className="w-12 h-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-3">
           <ShieldAlert className="w-6 h-6" />
         </div>

@@ -237,6 +237,104 @@
     --warning-light: 38 80% 20%;
     --warning-foreground: 38 90% 90%;
   }
+
+  /* ==========================================================================
+     Client Live Master Admin Theme (Scoped to /admin Portal & Radix Modals)
+     Extracted from live reference: https://growmatemasteradmin.lovable.app/admin
+     ========================================================================== */
+  html[data-admin="true"],
+  html[data-theme="admin"],
+  html:has(.admin-shell),
+  body.admin-portal,
+  body:has(.admin-shell),
+  .admin-shell {
+    --background: 240 9% 97%;
+    --foreground: 240 6% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 6% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 6% 10%;
+
+    /* Client Live Vibrant Electric Blue */
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 94%;
+    --secondary-foreground: 240 6% 15%;
+
+    --muted: 240 5% 95%;
+    --muted-foreground: 240 4% 42%;
+
+    /* Client Teal Accent */
+    --accent: 162 85% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 88%;
+    --ring: 211 100% 50%;
+
+    --radius: 0.875rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 50% 15%;
+    --sidebar-primary: 221 100% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 94%;
+    --sidebar-accent-foreground: 220 25% 25%;
+    --sidebar-border: 240 6% 91%;
+    --sidebar-ring: 221 100% 52%;
+  }
+
+  html.dark[data-admin="true"],
+  html.dark[data-theme="admin"],
+  html.dark:has(.admin-shell),
+  body.dark.admin-portal,
+  body.dark:has(.admin-shell),
+  .dark .admin-shell {
+    --background: 240 6% 4%;
+    --foreground: 45 30% 95%;
+
+    --card: 240 5% 9%;
+    --card-foreground: 45 30% 95%;
+
+    --popover: 220 25% 12%;
+    --popover-foreground: 45 30% 95%;
+
+    --primary: 214 100% 58%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 45 30% 90%;
+
+    --muted: 220 20% 16%;
+    --muted-foreground: 220 15% 70%;
+
+    --accent: 158 80% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 45 30% 95%;
+
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 214 100% 58%;
+
+    --radius: 0.875rem;
+
+    --sidebar-background: 224 45% 8%;
+    --sidebar-foreground: 45 30% 90%;
+    --sidebar-primary: 214 100% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 16%;
+    --sidebar-accent-foreground: 45 30% 90%;
+    --sidebar-border: 220 20% 18%;
+    --sidebar-ring: 214 100% 58%;
+  }
 }
 
 @layer base {

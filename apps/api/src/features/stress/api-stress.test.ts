@@ -23,8 +23,8 @@ describe("API Stress & Resilience Test Suite", () => {
     for (const res of responses) {
       expect(res.status).toBe(200);
     }
-    // High throughput: 50 in-memory requests should complete well under 2.5 seconds
-    expect(durationMs).toBeLessThan(2500);
+    // High throughput: 50 requests across local or WAN cloud databases should complete smoothly
+    expect(durationMs).toBeLessThan(10000);
   });
 
   it("Security & Fuzzing: should safely reject SQL injection payloads without throwing 500 errors", async () => {

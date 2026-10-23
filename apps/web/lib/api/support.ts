@@ -78,4 +78,28 @@ export const supportApi = {
     apiFetch<{ success: boolean }>(`/api/support/conversations/${conversationId}/read`, {
       method: "POST",
     }),
+
+  sendAIChat: (data: { message: string; conversationId?: string }) =>
+    apiFetch<{
+      success: boolean;
+      data: {
+        conversationId: string;
+        message: SupportMessageItem;
+        products?: Array<{
+          id: string;
+          name: string;
+          price: number;
+          original_price?: number;
+          discount_percent?: number;
+          in_stock: boolean;
+          stock_quantity: number;
+          badge?: string;
+          category?: string;
+          image?: string;
+        }>;
+      };
+    }>("/api/support/ai-chat", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };

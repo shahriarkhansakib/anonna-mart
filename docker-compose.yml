@@ -8,11 +8,16 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: growmate_db
+      POSTGRES_DB: anonna_mart
     ports:
       - "5434:5432"
     volumes:
       - growmate_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d anonna_mart"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
     restart: unless-stopped
 
   # -----------------------------------------

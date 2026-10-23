@@ -58,11 +58,22 @@ export const AdminShell = ({ children }: { children: ReactNode }) => {
     [],
   );
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.documentElement.setAttribute("data-admin", "true");
+      document.body.classList.add("admin-portal");
+      return () => {
+        document.documentElement.removeAttribute("data-admin");
+        document.body.classList.remove("admin-portal");
+      };
+    }
+  }, []);
+
   const toggleSidebar = () => setCollapsed((p) => !p);
 
   return (
     <AdminShellContext.Provider value={ctx}>
-      <div className="min-h-screen bg-background">
+      <div className="admin-shell min-h-screen bg-background text-foreground" data-admin="true">
         <AdminSidebar
           collapsed={collapsed}
           onToggle={toggleSidebar}

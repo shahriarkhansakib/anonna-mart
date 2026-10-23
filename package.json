@@ -16,7 +16,7 @@
     "db:push": "pnpm --filter @growmate/db push --force",
     "db:studio": "pnpm --filter @growmate/db studio",
     "db:generate": "pnpm --filter @growmate/db generate",
-    "db:reset": "docker compose down -v --remove-orphans && docker compose up -d && node -e \"setTimeout(()=>{},3000)\" && pnpm db:push && pnpm db:seed",
+    "db:reset": "docker compose down -v --remove-orphans && docker compose up -d --wait && pnpm db:push && pnpm db:seed",
     "db:seed": "pnpm --filter @growmate/db seed && pnpm --filter @growmate/api seed:admin",
     "db:seed:admin": "pnpm --filter @growmate/api seed:admin"
   },

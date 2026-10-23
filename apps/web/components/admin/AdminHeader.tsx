@@ -10,7 +10,6 @@ import {
   Stethoscope,
   User,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -133,20 +132,6 @@ export const AdminHeader = ({
               </h1>
               {subtitle && <p className="text-xs text-muted-foreground line-clamp-1">{subtitle}</p>}
             </div>
-            <div className="hidden xl:flex items-center gap-1.5 pl-3 border-l border-border/50 py-0.5">
-              <div className="h-5 w-5 rounded overflow-hidden bg-white shadow-2xs p-0.5 flex items-center justify-center border border-black/5 dark:border-white/10 shrink-0">
-                <img
-                  src="/growmate-logo.png"
-                  alt="GrowMate"
-                  className="h-full w-full object-contain"
-                  width={20}
-                  height={20}
-                />
-              </div>
-              <span className="text-[11px] font-semibold text-muted-foreground">
-                GrowMate Admin
-              </span>
-            </div>
           </div>
         </div>
 
@@ -174,8 +159,6 @@ export const AdminHeader = ({
               <TooltipContent>Refresh data</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-
-          <ThemeToggle />
 
           {/* Notifications with Pending Actions */}
           <DropdownMenu>
