@@ -1,7 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format, isAfter } from "date-fns";
+import { format } from "date-fns";
 import {
-  AlertCircle,
   Building2,
   CheckCircle2,
   ChevronLeft,
@@ -12,10 +11,8 @@ import {
   DollarSign,
   Download,
   Loader2,
-  PawPrint,
   Search,
   ShoppingBag,
-  Stethoscope,
   User,
   Users,
   X,
@@ -24,8 +21,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminStatCard } from "@/components/admin/AdminStatCard";
-import { RequireAdmin } from "@/components/admin/RequireAdmin";
-import { getTimeCutoff, type TimeFilter, TimeFilterBar } from "@/components/admin/TimeFilterBar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,70 +49,59 @@ import {
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAdminRealtimeDashboard } from "@/hooks/useAdminRealtimeDashboard";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { usePagination } from "@/hooks/usePagination";
 import { ordersApi } from "@/lib/api/orders";
-import { usersApi } from "@/lib/api/users";
+import { type UserProfileItem, usersApi } from "@/lib/api/users";
 import { downloadCSV } from "@/lib/csvParser";
-import { customerSegments, SEGMENT_LABELS, type Segment } from "@/lib/customerSegments";
+import { SEGMENT_LABELS, type Segment } from "@/lib/customerSegments";
 import { useNavigate } from "@/lib/router-compat";
-import { cn } from "@/lib/utils";
 
 type PaymentFilter = "all" | "paid" | "unpaid";
 
-interface EcomCustomer {
-  user_id: string;
-  full_name: string | null;
-  phone: string | null;
-  avatar_url: string | null;
-  order_count: number;
-  total_spent: number;
-  last_order_date: string;
-  last_payment_status: string;
-  last_payment_method: string;
-  roles: string[];
-}
-
-const SEGMENT_STYLE: Record<Segment, string> = {
+const SEGMENT_STYLE: Record<string, string> = {
   vip: "bg-primary/10 text-primary border-primary/20",
   high_spender: "bg-accent text-accent-foreground border-border",
   at_risk: "bg-destructive/10 text-destructive border-destructive/20",
   new: "bg-muted text-muted-foreground border-border",
 };
-const SegmentBadge = ({ s }: { s: Segment }) => (
-  <Badge
-    variant="outline"
-    className={`${SEGMENT_STYLE[s]} text-[10px] px-1.5 py-0 font-medium border`}
-  >
-    {SEGMENT_LABELS[s]}
-  </Badge>
-);
 
-// --- Role Badge Component (legacy, unused) ---
+const SegmentBadge = ({ s }: { s: string }) => {
+  const style = SEGMENT_STYLE[s] || "bg-muted text-muted-foreground border-border";
+  const label = SEGMENT_LABELS[s as Segment] || s.replace(/_/g, " ");
+  return (
+    <Badge
+      variant="outline"
+      className={`${style} text-[10px] px-1.5 py-0 font-medium border capitalize`}
+    >
+      {label}
+    </Badge>
+  );
+};
+
+// --- E-Commerce Role Badge ---
 export const RoleBadge = ({ role }: { role: string }) => {
   const config: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
+    super_admin: {
+      label: "Super Admin",
+      className:
+        "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800",
+      icon: <Building2 className="h-2.5 w-2.5" />,
+    },
     admin: {
       label: "Admin",
       className:
         "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800",
       icon: <User className="h-2.5 w-2.5" />,
     },
-    doctor: {
-      label: "Doctor",
-      className:
-        "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 border-teal-200 dark:border-teal-800",
-      icon: <Stethoscope className="h-2.5 w-2.5" />,
-    },
-    clinic_owner: {
-      label: "Clinic Owner",
+    staff: {
+      label: "Staff",
       className:
         "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
-      icon: <Building2 className="h-2.5 w-2.5" />,
+      icon: <Users className="h-2.5 w-2.5" />,
     },
     user: {
-      label: "Pet Parent",
-      className:
-        "bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-300 border-orange-200 dark:border-orange-800",
-      icon: <PawPrint className="h-2.5 w-2.5" />,
+      label: "Customer",
+      className: "bg-muted text-muted-foreground border-border",
+      icon: <ShoppingBag className="h-2.5 w-2.5" />,
     },
   };
   const c = config[role] || config.user;
@@ -230,201 +214,74 @@ const BulkActionBar = ({
   </div>
 );
 
-// EcomStatCard and getTimeCutoff replaced by shared AdminStatCard and TimeFilterBar imports
-
 const AdminEcommerceCustomers = () => {
-  useDocumentTitle("E-Commerce Customers - Admin");
+  useDocumentTitle("E-Commerce Customers — GrowMate Admin Panel");
   const navigate = useNavigate();
 
   const queryClient = useQueryClient();
   const { isAdmin } = useAdmin();
   useAdminRealtimeDashboard(isAdmin);
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const [searchQuery, setSearchQuery] = useState("");
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
+  const [segmentFilter, setSegmentFilter] = useState<"all" | Segment>("all");
+  const [sortBy, setSortBy] = useState<string>("recent");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [updatingPayment, setUpdatingPayment] = useState<string | null>(null);
   const [bulkLoading, setBulkLoading] = useState(false);
-  const [segmentFilter, setSegmentFilter] = useState<"all" | Segment>("all");
 
-  // Fetch orders
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ["admin-ecommerce-customers"],
-    queryFn: async () => {
-      const res = await ordersApi.list();
-      return (res.orders || res.data || []).map((o: any) => ({
-        id: o.id,
-        user_id: o.userId || o.user_id || o.id,
-        total_amount: Number(o.totalAmount || o.total_amount || 0),
-        payment_status: o.paymentStatus || o.payment_status || "unpaid",
-        payment_method: o.paymentMethod || o.payment_method || "cod",
-        created_at: o.createdAt || o.created_at,
-        status: o.status,
-      }));
-    },
+  // Reset to page 1 on search or filter change
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, paymentFilter, segmentFilter, sortBy]);
+
+  // Query server-side aggregated customer database
+  const { data: customerResponse, isLoading } = useQuery({
+    queryKey: [
+      "admin-ecommerce-customers",
+      page,
+      pageSize,
+      searchQuery,
+      segmentFilter,
+      paymentFilter,
+      sortBy,
+    ],
+    queryFn: () =>
+      usersApi.list({
+        page,
+        limit: pageSize,
+        search: searchQuery,
+        segment: segmentFilter,
+        payment: paymentFilter,
+        sortBy,
+      }),
     enabled: isAdmin,
   });
 
-  // Fetch profiles
-  const { data: profiles } = useQuery({
-    queryKey: ["admin-profiles-for-ecom"],
-    queryFn: async () => {
-      const res = await usersApi.list();
-      return (res.users || res.data || []).map((u: any) => ({
-        user_id: u.id || u.user_id,
-        full_name: u.full_name || u.name,
-        phone: u.phone,
-        avatar_url: u.avatar_url,
-      }));
-    },
-    enabled: isAdmin,
-  });
+  const customers = useMemo(() => customerResponse?.data || [], [customerResponse]);
+  const stats = useMemo(
+    () =>
+      customerResponse?.stats || {
+        totalCustomers: 0,
+        totalSales: 0,
+        paidSales: 0,
+        pendingSales: 0,
+        avgLtv: 0,
+        totalCreditsOutstanding: 0,
+      },
+    [customerResponse],
+  );
 
-  // Fetch user roles
-  const { data: userRoles } = useQuery({
-    queryKey: ["admin-user-roles-for-ecom"],
-    queryFn: async () => {
-      const res = await usersApi.list();
-      return (res.users || res.data || []).map((u: any) => ({
-        user_id: u.id || u.user_id,
-        role: u.role || "user",
-      }));
-    },
-    enabled: isAdmin,
-  });
-
-  // Removed duplicate realtime channel — useAdminRealtimeDashboard already handles orders & incomplete_orders
-
-  // Build role map
-  const roleMap = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    for (const r of userRoles || []) {
-      if (!map[r.user_id]) map[r.user_id] = [];
-      map[r.user_id].push(r.role);
-    }
-    return map;
-  }, [userRoles]);
-
-  // Filter orders by time
-  const timeFilteredOrders = useMemo(() => {
-    if (!orders) return [];
-    const cutoff = getTimeCutoff(timeFilter);
-    if (!cutoff) return orders;
-    return orders.filter((o) => isAfter(new Date(o.created_at), cutoff));
-  }, [orders, timeFilter]);
-
-  // Aggregate customers from time-filtered orders
-  const customers = useMemo<EcomCustomer[]>(() => {
-    if (!timeFilteredOrders.length) return [];
-    const profileMap = new Map((profiles || []).map((p) => [p.user_id, p]));
-    const agg: Record<string, EcomCustomer> = {};
-
-    for (const order of timeFilteredOrders) {
-      const uid = order.user_id;
-      const isCancelled = order.status === "cancelled";
-      if (!agg[uid]) {
-        const profile = profileMap.get(uid);
-        agg[uid] = {
-          user_id: uid,
-          full_name: profile?.full_name || null,
-          phone: profile?.phone || null,
-          avatar_url: profile?.avatar_url || null,
-          order_count: 0,
-          total_spent: 0,
-          last_order_date: order.created_at,
-          last_payment_status: order.payment_status || "unpaid",
-          last_payment_method: order.payment_method || "cod",
-          roles: roleMap[uid] || ["user"],
-        };
-      }
-      if (!isCancelled) {
-        agg[uid].order_count += 1;
-        agg[uid].total_spent += Number(order.total_amount) || 0;
-      }
-    }
-
-    return Object.values(agg)
-      .filter((c) => c.order_count > 0)
-      .sort((a, b) => b.total_spent - a.total_spent);
-  }, [timeFilteredOrders, profiles, roleMap]);
-
-  const { data: credits } = useQuery({
-    queryKey: ["admin-store-credits"],
-    queryFn: async () => {
-      const res = await usersApi.getCredits();
-      return (res.data || []) as { customer_user_id: string; amount: number }[];
-    },
-    enabled: isAdmin,
-  });
-  const creditMap = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const c of credits || [])
-      m.set(c.customer_user_id, (m.get(c.customer_user_id) || 0) + Number(c.amount));
-    return m;
-  }, [credits]);
-
-  // Segments always use full order history, not the time filter
-  const segmentMap = useMemo(() => {
-    const agg = new Map<
-      string,
-      { order_count: number; total_spent: number; last_order_date: string | null }
-    >();
-    for (const o of orders || []) {
-      if (o.status === "cancelled" || o.status === "rejected") continue;
-      const a = agg.get(o.user_id) || { order_count: 0, total_spent: 0, last_order_date: null };
-      a.order_count += 1;
-      a.total_spent += Number(o.total_amount) || 0;
-      if (!a.last_order_date || o.created_at > a.last_order_date) a.last_order_date = o.created_at;
-      agg.set(o.user_id, a);
-    }
-    const m = new Map<string, Segment[]>();
-    agg.forEach((v, k) => m.set(k, customerSegments(v)));
-    return m;
-  }, [orders]);
-
-  // Stats from time-filtered orders
-  const stats = useMemo(() => {
-    const activeOrders = timeFilteredOrders.filter((o) => o.status !== "cancelled");
-    const totalSales = activeOrders.reduce((s, o) => s + (Number(o.total_amount) || 0), 0);
-    const paid = activeOrders
-      .filter((o) => o.payment_status === "paid")
-      .reduce((s, o) => s + (Number(o.total_amount) || 0), 0);
-    const pending = activeOrders
-      .filter((o) => o.payment_status === "unpaid" || !o.payment_status)
-      .reduce((s, o) => s + (Number(o.total_amount) || 0), 0);
-    const uniqueUsers = new Set(activeOrders.map((o) => o.user_id));
-    return { totalSales, paid, pending, totalCustomers: uniqueUsers.size };
-  }, [timeFilteredOrders]);
-
-  // Filter
-  const filteredCustomers = useMemo(() => {
-    let result = customers;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (c) => c.full_name?.toLowerCase().includes(q) || c.phone?.toLowerCase().includes(q),
-      );
-    }
-    if (paymentFilter !== "all") {
-      result = result.filter((c) => c.last_payment_status === paymentFilter);
-    }
-    if (segmentFilter !== "all") {
-      result = result.filter((c) => segmentMap.get(c.user_id)?.includes(segmentFilter));
-    }
-    return result;
-  }, [customers, searchQuery, paymentFilter, segmentFilter, segmentMap]);
-
-  const {
-    paginatedData,
-    currentPage,
-    totalPages,
-    previousPage,
-    nextPage,
-    hasPreviousPage,
-    hasNextPage,
-    startIndex,
-  } = usePagination({ data: filteredCustomers, pageSize: 20 });
+  const pagination = customerResponse?.pagination || {
+    page: 1,
+    pageSize: 25,
+    totalCount: customers.length,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+  };
 
   // Selection helpers
   const toggleSelect = useCallback((id: string) => {
@@ -437,37 +294,40 @@ const AdminEcommerceCustomers = () => {
   }, []);
 
   const toggleSelectAll = useCallback(() => {
-    if (selectedIds.size === paginatedData.length) {
+    if (selectedIds.size === customers.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(paginatedData.map((c) => c.user_id)));
+      setSelectedIds(new Set(customers.map((c) => c.user_id)));
     }
-  }, [paginatedData, selectedIds.size]);
+  }, [customers, selectedIds.size]);
 
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
-  // Update payment status
+  // Update payment status for customer's latest order
   const updatePaymentStatus = useCallback(
     async (userId: string, newStatus: string) => {
       setUpdatingPayment(userId);
       try {
-        const ordersForUser = (orders || []).filter(
-          (o: any) => o.user_id === userId && o.status !== "cancelled" && o.status !== "rejected",
+        const userRes = await usersApi.get(userId);
+        const userOrders = userRes.data?.orders || [];
+        const activeOrder = userOrders.find(
+          (o: any) => o.status !== "cancelled" && o.status !== "rejected",
         );
-        for (const order of ordersForUser) {
-          await ordersApi.update(order.id, { paymentStatus: newStatus });
+        if (activeOrder) {
+          await ordersApi.update(activeOrder.id, { paymentStatus: newStatus });
+          queryClient.invalidateQueries({ queryKey: ["admin-ecommerce-customers"] });
+          queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+          toast.success(`Payment status set to ${newStatus}`);
+        } else {
+          toast.error("No active order found for this customer");
         }
-        queryClient.invalidateQueries({ queryKey: ["admin-ecommerce-customers"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-        toast.success(`Payment status set to ${newStatus}`);
       } catch {
         toast.error("Failed to update payment status");
       } finally {
         setUpdatingPayment(null);
       }
     },
-    [orders, queryClient],
+    [queryClient],
   );
 
   // Bulk update
@@ -478,16 +338,16 @@ const AdminEcommerceCustomers = () => {
       try {
         const ids = Array.from(selectedIds);
         for (const uid of ids) {
-          const ordersForUser = (orders || []).filter(
-            (o: any) => o.user_id === uid && o.status !== "cancelled" && o.status !== "rejected",
+          const userRes = await usersApi.get(uid);
+          const activeOrder = (userRes.data?.orders || []).find(
+            (o: any) => o.status !== "cancelled" && o.status !== "rejected",
           );
-          for (const order of ordersForUser) {
-            await ordersApi.update(order.id, { paymentStatus: newStatus });
+          if (activeOrder) {
+            await ordersApi.update(activeOrder.id, { paymentStatus: newStatus });
           }
         }
         queryClient.invalidateQueries({ queryKey: ["admin-ecommerce-customers"] });
         queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-        queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
         toast.success(`${ids.length} customers updated to ${newStatus}`);
         clearSelection();
       } catch {
@@ -496,68 +356,66 @@ const AdminEcommerceCustomers = () => {
         setBulkLoading(false);
       }
     },
-    [selectedIds, orders, queryClient, clearSelection],
+    [selectedIds, queryClient, clearSelection],
   );
 
   // Export
-  const exportCustomers = useCallback(
-    (data: EcomCustomer[]) => {
-      if (!data.length) return;
-      const headers = [
-        "Customer",
-        "Phone",
-        "Segments",
-        "Orders",
-        "Total Spent",
-        "Store Credit",
-        "Payment Method",
-        "Payment Status",
-        "Last Order",
-      ];
-      const rows = data.map((c) => [
-        c.full_name || "Unnamed",
-        c.phone || "",
-        (segmentMap.get(c.user_id) || []).map((s) => SEGMENT_LABELS[s]).join(", "),
-        c.order_count.toString(),
-        c.total_spent.toFixed(2),
-        (creditMap.get(c.user_id) || 0).toFixed(2),
-        c.last_payment_method,
-        c.last_payment_status,
-        format(new Date(c.last_order_date), "yyyy-MM-dd"),
-      ]);
-      const csvContent = [
-        headers.join(","),
-        ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
-      ].join("\n");
-      downloadCSV(csvContent, `ecommerce-customers-${format(new Date(), "yyyy-MM-dd")}.csv`);
-      toast.success("Customers exported to CSV");
-    },
-    [segmentMap, creditMap],
-  );
+  const exportCustomers = useCallback((data: UserProfileItem[]) => {
+    if (!data.length) return;
+    const headers = [
+      "Customer Name",
+      "Email",
+      "Phone",
+      "Segment",
+      "Orders Count",
+      "Total Spent (BDT)",
+      "Store Credit (BDT)",
+      "Payment Method",
+      "Payment Status",
+      "Last Order Date",
+      "Joined Date",
+    ];
+    const rows = data.map((c) => [
+      c.full_name || c.name || "Unnamed",
+      c.email || "",
+      c.phone || "",
+      c.segment ? SEGMENT_LABELS[c.segment as Segment] || c.segment : "New",
+      (c.order_count ?? c.orders_count ?? 0).toString(),
+      (c.total_spent ?? 0).toFixed(2),
+      (c.store_credit_balance ?? 0).toFixed(2),
+      c.last_payment_method || "cod",
+      c.last_payment_status || "unpaid",
+      c.last_order_date ? format(new Date(c.last_order_date), "yyyy-MM-dd") : "Never",
+      c.created_at ? format(new Date(c.created_at), "yyyy-MM-dd") : "",
+    ]);
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
+    downloadCSV(csvContent, `ecommerce-customers-${format(new Date(), "yyyy-MM-dd")}.csv`);
+    toast.success("Customers exported to CSV");
+  }, []);
 
   const handleExportCSV = useCallback(
-    () => exportCustomers(filteredCustomers),
-    [exportCustomers, filteredCustomers],
+    () => exportCustomers(customers),
+    [exportCustomers, customers],
   );
 
   const handleExportSelected = useCallback(() => {
-    const selected = filteredCustomers.filter((c) => selectedIds.has(c.user_id));
+    const selected = customers.filter((c) => selectedIds.has(c.user_id));
     exportCustomers(selected);
-  }, [exportCustomers, filteredCustomers, selectedIds]);
+  }, [exportCustomers, customers, selectedIds]);
 
   const formatBDT = (amount: number) =>
     `৳${amount.toLocaleString("en-BD", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
-  const isAllSelected = paginatedData.length > 0 && selectedIds.size === paginatedData.length;
+  const isAllSelected = customers.length > 0 && selectedIds.size === customers.length;
+  const startRange = (pagination.page - 1) * pagination.pageSize + 1;
+  const endRange = Math.min(pagination.page * pagination.pageSize, pagination.totalCount);
 
   return (
     <AdminLayout title="E-Commerce Customers" subtitle="Payments, buyers & revenue overview">
-      {/* Time Filter */}
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <TimeFilterBar value={timeFilter} onChange={setTimeFilter} />
-      </div>
-
-      {/* Stats Cards - matching reference design */}
+      {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
         <AdminStatCard
           label="Total Sales"
@@ -571,7 +429,7 @@ const AdminEcommerceCustomers = () => {
         />
         <AdminStatCard
           label="Paid"
-          value={formatBDT(stats.paid)}
+          value={formatBDT(stats.paidSales)}
           icon={CreditCard}
           iconColor="text-blue-600"
           iconBg="bg-blue-500/10"
@@ -581,7 +439,7 @@ const AdminEcommerceCustomers = () => {
         />
         <AdminStatCard
           label="Pending"
-          value={formatBDT(stats.pending)}
+          value={formatBDT(stats.pendingSales)}
           icon={Clock}
           iconColor="text-amber-600"
           iconBg="bg-amber-500/10"
@@ -604,27 +462,40 @@ const AdminEcommerceCustomers = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by name or phone..."
+            placeholder="Search by name, phone, or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-10 sm:h-11 rounded-xl text-sm"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap">
           <Select value={paymentFilter} onValueChange={(v) => setPaymentFilter(v as PaymentFilter)}>
-            <SelectTrigger className="w-[130px] sm:w-[150px] h-10 sm:h-11 rounded-xl text-sm">
+            <SelectTrigger className="w-[130px] sm:w-[140px] h-10 sm:h-11 rounded-xl text-sm">
               <SelectValue placeholder="All" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="all">All Payment</SelectItem>
               <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="unpaid">Unpaid</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[140px] sm:w-[150px] h-10 sm:h-11 rounded-xl text-sm">
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Most Recent</SelectItem>
+              <SelectItem value="total_spent">Highest Spent</SelectItem>
+              <SelectItem value="order_count">Most Orders</SelectItem>
+              <SelectItem value="credit">Store Credit</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button
             variant="outline"
             onClick={handleExportCSV}
-            disabled={!filteredCustomers.length}
+            disabled={!customers.length}
             className="h-10 sm:h-11 rounded-xl text-sm gap-2"
           >
             <Download className="h-4 w-4" />
@@ -632,6 +503,8 @@ const AdminEcommerceCustomers = () => {
           </Button>
         </div>
       </div>
+
+      {/* Segment Pills */}
       <div className="flex gap-2 overflow-x-auto mb-4 -mx-1 px-1">
         {(["all", "vip", "high_spender", "at_risk", "new"] as const).map((s) => (
           <Button
@@ -641,12 +514,7 @@ const AdminEcommerceCustomers = () => {
             className="rounded-full shrink-0"
             onClick={() => setSegmentFilter(s)}
           >
-            {s === "all" ? "All customers" : SEGMENT_LABELS[s]}
-            <span className="ml-1 opacity-70">
-              {s === "all"
-                ? customers.length
-                : customers.filter((c) => segmentMap.get(c.user_id)?.includes(s)).length}
-            </span>
+            {s === "all" ? "All Customers" : SEGMENT_LABELS[s]}
           </Button>
         ))}
       </div>
@@ -664,26 +532,29 @@ const AdminEcommerceCustomers = () => {
 
       {/* Result count */}
       <p className="text-xs sm:text-sm text-muted-foreground mb-2">
-        Showing {paginatedData.length ? startIndex + 1 : 0}–{startIndex + paginatedData.length} of{" "}
-        {filteredCustomers.length} customers
+        Showing {pagination.totalCount > 0 ? startRange : 0}–{endRange} of {pagination.totalCount}{" "}
+        customers
       </p>
 
       {/* Table */}
       <div className="bg-card rounded-xl sm:rounded-2xl border border-border overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-16">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : paginatedData.length === 0 ? (
-          <div className="text-center py-12">
-            <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">No customers found</p>
+        ) : customers.length === 0 ? (
+          <div className="text-center py-16">
+            <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-40" />
+            <p className="text-muted-foreground font-medium">No customers found</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Try adjusting your search query or segment filters
+            </p>
           </div>
         ) : (
           <>
             {/* Mobile Card View */}
             <div className="sm:hidden divide-y divide-border">
-              {paginatedData.map((customer) => (
+              {customers.map((customer) => (
                 <div key={customer.user_id} className="p-3 space-y-2">
                   <div className="flex items-center gap-2">
                     <button
@@ -697,8 +568,8 @@ const AdminEcommerceCustomers = () => {
                       )}
                     </button>
                     <Avatar className="h-9 w-9 flex-shrink-0">
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        <User className="h-4 w-4" />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+                        {(customer.full_name || customer.name || "U").slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
@@ -706,43 +577,50 @@ const AdminEcommerceCustomers = () => {
                         onClick={() => navigate(`/admin/customers/${customer.user_id}`)}
                         className="font-medium text-sm truncate text-left hover:text-primary block max-w-full"
                       >
-                        {customer.full_name || "Unnamed"}
+                        {customer.full_name || customer.name || "Unnamed"}
                       </button>
                       <p className="text-xs text-muted-foreground">
-                        {customer.phone || "No phone"}
+                        {customer.phone || customer.email || "No phone"}
                       </p>
                     </div>
                     <PaymentStatusBadge
-                      status={customer.last_payment_status}
+                      status={customer.last_payment_status || "unpaid"}
                       onUpdate={(s) => updatePaymentStatus(customer.user_id, s)}
                       loading={updatingPayment === customer.user_id}
                     />
                   </div>
-                  {/* Role badges */}
+                  {/* Segment & Role Badges */}
                   <div className="flex gap-1 flex-wrap pl-7">
-                    {(segmentMap.get(customer.user_id) || []).map((s) => (
-                      <SegmentBadge key={s} s={s} />
-                    ))}
+                    {customer.segment && <SegmentBadge s={customer.segment} />}
+                    {customer.banned && (
+                      <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                        Banned
+                      </Badge>
+                    )}
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div className="bg-muted/50 rounded-lg p-2 text-center">
                       <p className="text-muted-foreground">Orders</p>
-                      <p className="font-semibold">{customer.order_count}</p>
+                      <p className="font-semibold">
+                        {customer.order_count ?? customer.orders_count ?? 0}
+                      </p>
                     </div>
                     <div className="bg-muted/50 rounded-lg p-2 text-center">
                       <p className="text-muted-foreground">Spent</p>
-                      <p className="font-semibold">{formatBDT(customer.total_spent)}</p>
+                      <p className="font-semibold">{formatBDT(customer.total_spent ?? 0)}</p>
                     </div>
                     <div className="bg-muted/50 rounded-lg p-2 text-center">
-                      <p className="text-muted-foreground">Method</p>
-                      <p className="font-semibold uppercase">{customer.last_payment_method}</p>
+                      <p className="text-muted-foreground">Credit</p>
+                      <p className="font-semibold text-primary">
+                        {formatBDT(customer.store_credit_balance ?? 0)}
+                      </p>
                     </div>
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Last order: {format(new Date(customer.last_order_date), "PP")}
-                    {creditMap.get(customer.user_id)
-                      ? ` · Credit ${formatBDT(creditMap.get(customer.user_id)!)}`
-                      : ""}
+                    Last order:{" "}
+                    {customer.last_order_date
+                      ? format(new Date(customer.last_order_date), "PP")
+                      : "Never"}
                   </p>
                 </div>
               ))}
@@ -766,17 +644,17 @@ const AdminEcommerceCustomers = () => {
                       </button>
                     </TableHead>
                     <TableHead>Customer</TableHead>
-                    <TableHead>Segment</TableHead>
+                    <TableHead>Role & Segment</TableHead>
                     <TableHead className="text-center">Orders</TableHead>
                     <TableHead className="text-right">Total Spent</TableHead>
-                    <TableHead className="text-right">Credit</TableHead>
+                    <TableHead className="text-right">Credit Balance</TableHead>
                     <TableHead>Payment Method</TableHead>
                     <TableHead>Payment Status</TableHead>
                     <TableHead>Last Order</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedData.map((customer) => (
+                  {customers.map((customer) => (
                     <TableRow
                       key={customer.user_id}
                       className="hover:bg-muted/50 transition-colors cursor-pointer"
@@ -800,50 +678,66 @@ const AdminEcommerceCustomers = () => {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9">
-                            <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                              <User className="h-4 w-4" />
+                            <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+                              {(customer.full_name || customer.name || "U")
+                                .slice(0, 2)
+                                .toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium text-sm">{customer.full_name || "Unnamed"}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="font-medium text-sm">
+                                {customer.full_name || customer.name || "Unnamed"}
+                              </p>
+                              {customer.banned && (
+                                <Badge variant="destructive" className="text-[9px] px-1 py-0 h-4">
+                                  Banned
+                                </Badge>
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground">
-                              {customer.phone || "No phone"}
+                              {customer.phone || customer.email || "No phone"}
                             </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
-                          {(segmentMap.get(customer.user_id) || []).map((s) => (
-                            <SegmentBadge key={s} s={s} />
-                          ))}
+                          <RoleBadge role={customer.role || "user"} />
+                          {customer.segment && <SegmentBadge s={customer.segment} />}
                         </div>
                       </TableCell>
                       <TableCell className="text-center font-medium">
-                        {customer.order_count}
+                        {customer.order_count ?? customer.orders_count ?? 0}
                       </TableCell>
                       <TableCell className="text-right font-semibold">
-                        {formatBDT(customer.total_spent)}
+                        {formatBDT(customer.total_spent ?? 0)}
                       </TableCell>
-                      <TableCell className="text-right text-sm">
-                        {creditMap.get(customer.user_id)
-                          ? formatBDT(creditMap.get(customer.user_id)!)
-                          : "—"}
+                      <TableCell className="text-right text-sm font-medium">
+                        {(customer.store_credit_balance ?? 0) > 0 ? (
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                            {formatBDT(customer.store_credit_balance!)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <span className="uppercase text-xs font-medium text-muted-foreground">
-                          {customer.last_payment_method}
+                          {customer.last_payment_method || "cod"}
                         </span>
                       </TableCell>
                       <TableCell>
                         <PaymentStatusBadge
-                          status={customer.last_payment_status}
+                          status={customer.last_payment_status || "unpaid"}
                           onUpdate={(s) => updatePaymentStatus(customer.user_id, s)}
                           loading={updatingPayment === customer.user_id}
                         />
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {format(new Date(customer.last_order_date), "PP")}
+                        {customer.last_order_date
+                          ? format(new Date(customer.last_order_date), "PP")
+                          : "Never"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -854,34 +748,58 @@ const AdminEcommerceCustomers = () => {
         )}
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Page {currentPage} of {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={previousPage}
-              disabled={!hasPreviousPage}
-              className="h-9 rounded-xl gap-1"
-            >
-              <ChevronLeft className="h-4 w-4" /> Prev
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={nextPage}
-              disabled={!hasNextPage}
-              className="h-9 rounded-xl gap-1"
-            >
-              Next <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+      {/* Server-Side Pagination Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-2">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Rows per page:</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(val) => {
+              setPageSize(Number(val));
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-16 h-8 text-xs rounded-lg">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="25">25</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+          <span className="ml-2">
+            Page {pagination.page} of {pagination.totalPages}
+          </span>
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={!pagination.hasPrevPage || isLoading}
+            className="h-8 rounded-lg text-xs gap-1"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+            Previous
+          </Button>
+          <span className="text-xs px-2 font-medium">
+            {pagination.page} / {pagination.totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p + 1)}
+            disabled={!pagination.hasNextPage || isLoading}
+            className="h-8 rounded-lg text-xs gap-1"
+          >
+            Next
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      </div>
     </AdminLayout>
   );
 };

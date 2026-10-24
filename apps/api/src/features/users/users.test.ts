@@ -44,4 +44,40 @@ describe("Users & Customer Profiles API Suite", () => {
 
     expect(res.status).toBe(401);
   });
+
+  it("DELETE /api/users/:id/notes/:noteId without authentication should return 401 Unauthorized", async () => {
+    const res = await app.request("/api/users/some-user-uuid-1234/notes/note-5678", {
+      method: "DELETE",
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("POST /api/users/:id/credits without authentication should return 401 Unauthorized", async () => {
+    const res = await app.request("/api/users/some-user-uuid-1234/credits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: 500, reason: "Courtesy credit" }),
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("POST /api/users/:id/ban without authentication should return 401 Unauthorized", async () => {
+    const res = await app.request("/api/users/some-user-uuid-1234/ban", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: "Fraud policy violation" }),
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("POST /api/users/:id/unban without authentication should return 401 Unauthorized", async () => {
+    const res = await app.request("/api/users/some-user-uuid-1234/unban", {
+      method: "POST",
+    });
+
+    expect(res.status).toBe(401);
+  });
 });
