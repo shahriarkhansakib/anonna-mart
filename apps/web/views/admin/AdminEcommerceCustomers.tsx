@@ -352,7 +352,8 @@ const AdminEcommerceCustomers = () => {
   const { data: credits } = useQuery({
     queryKey: ["admin-store-credits"],
     queryFn: async () => {
-      return [] as { customer_user_id: string; amount: number }[];
+      const res = await usersApi.getCredits();
+      return (res.data || []) as { customer_user_id: string; amount: number }[];
     },
     enabled: isAdmin,
   });

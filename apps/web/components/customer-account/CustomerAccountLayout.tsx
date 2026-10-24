@@ -43,7 +43,14 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const isAdmin = (user as any)?.role === "admin";
+  const isAdmin = (user as any)?.role === "admin" || (user as any)?.role === "super_admin";
+
+  // Redirect admin users away from the customer account area to the admin panel
+  useEffect(() => {
+    if (user && isAdmin) {
+      router.replace("/admin");
+    }
+  }, [user, isAdmin, router]);
 
   const handleSignOut = async () => {
     try {
@@ -86,12 +93,6 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <ThemeToggle />
             <Link
-              href="/"
-              className="hidden text-xs font-bold text-muted-foreground hover:text-foreground sm:block"
-            >
-              Storefront
-            </Link>
-            <Link
               href="/account/wishlist"
               className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl text-foreground hover:bg-muted"
               aria-label="Wishlist"
@@ -110,7 +111,7 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
             >
               <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 && (
-                <span className="absolute right-0.5 top-0.5 min-w-4 rounded-full bg-emerald-700 dark:bg-emerald-500 px-1 text-center text-[10px] font-bold text-white dark:text-emerald-950">
+                <span className="absolute right-0.5 top-0.5 min-w-4 rounded-full bg-primary px-1 text-center text-[10px] font-bold text-primary-foreground">
                   {cartCount}
                 </span>
               )}
@@ -128,7 +129,7 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
             <div className="rounded-3xl border border-border bg-card p-5 shadow-xs text-card-foreground">
               <div className="border-b border-border pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-800 dark:bg-emerald-600 text-sm font-bold text-white shadow-xs">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-sm font-bold text-primary-foreground shadow-xs">
                     {user?.name?.[0]?.toUpperCase() || "U"}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -142,9 +143,9 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
                   <div className="mt-3">
                     <Link
                       href="/admin"
-                      className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors"
+                      className="flex items-center gap-2 rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500/15 transition-colors"
                     >
-                      <Shield className="h-4 w-4 text-amber-700" />
+                      <Shield className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                       Admin Control Panel
                     </Link>
                   </div>
@@ -160,11 +161,13 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
                       href={href}
                       className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all sm:text-sm ${
                         active
-                          ? "bg-brand-900 text-white shadow-xs"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-brand-900"
+                          ? "bg-primary text-primary-foreground shadow-xs"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
                       }`}
                     >
-                      <Icon className={`h-4 w-4 ${active ? "text-white" : "text-slate-400"}`} />
+                      <Icon
+                        className={`h-4 w-4 ${active ? "text-primary-foreground" : "text-muted-foreground"}`}
+                      />
                       <span>{label}</span>
                     </Link>
                   );
@@ -173,7 +176,7 @@ export function CustomerAccountLayout({ children }: { children: React.ReactNode 
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors sm:text-sm"
+                  className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 transition-colors sm:text-sm"
                 >
                   <LogOut className="h-4 w-4" />
                   Sign Out

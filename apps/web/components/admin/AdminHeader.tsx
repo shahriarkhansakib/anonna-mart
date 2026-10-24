@@ -10,6 +10,7 @@ import {
   Stethoscope,
   User,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -160,6 +161,9 @@ export const AdminHeader = ({
             </Tooltip>
           </TooltipProvider>
 
+          {/* Theme Toggle (Light / Dark Mode) */}
+          <ThemeToggle />
+
           {/* Notifications with Pending Actions */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -230,7 +234,7 @@ export const AdminHeader = ({
               <DropdownMenuItem
                 onClick={async () => {
                   await signOut();
-                  window.location.href = "/sign-in";
+                  window.location.href = "/";
                 }}
                 className="text-destructive py-2.5 cursor-pointer"
               >

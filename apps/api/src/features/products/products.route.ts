@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { categories, db, products, productVariants } from "@growmate/db";
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, notInArray, or } from "drizzle-orm";
 import { Hono } from "hono";
 import { requireAuth } from "../../infra/middleware/auth";
 import { requirePermission } from "../../infra/middleware/require-permission";
@@ -8,7 +8,7 @@ import { requirePermission } from "../../infra/middleware/require-permission";
 export const productsRouter = new Hono();
 
 // Helper to format product for UI (provides both camelCase and snake_case compatibility)
-function formatProduct(p: any) {
+function formatProduct(p: any, variants: any[] = []) {
   if (!p) return p;
   const imageUrl =
     Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : p.imageUrl || null;
@@ -23,9 +23,106 @@ function formatProduct(p: any) {
     is_active: p.isActive,
     is_featured: p.isFeatured,
     category: p.categoryName || p.categoryId,
+    variants,
     created_at: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
     updated_at: p.updatedAt ? new Date(p.updatedAt).toISOString() : new Date().toISOString(),
   };
+}
+
+// Helper to resolve valid category ID with foreign key integrity
+async function resolveCategoryId(categoryIdOrName?: string | null): Promise<string> {
+  if (!categoryIdOrName) {
+    const [first] = await db.select({ id: categories.id }).from(categories).limit(1);
+    return first ? first.id : "cat-home-decor";
+  }
+
+  // 1. Direct ID match
+  const [byId] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(eq(categories.id, categoryIdOrName));
+  if (byId) return byId.id;
+
+  // 2. Name or Slug match (case-insensitive)
+  const [byName] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(
+      or(
+        ilike(categories.name, categoryIdOrName),
+        eq(categories.slug, categoryIdOrName.toLowerCase().replace(/[^a-z0-9]+/g, "-")),
+      ),
+    );
+  if (byName) return byName.id;
+
+  // 3. Fallback to first existing category
+  const [firstCat] = await db.select({ id: categories.id }).from(categories).limit(1);
+  return firstCat ? firstCat.id : "cat-home-decor";
+}
+
+// Helper to synchronize product variants and auto-recalculate total stock
+async function syncProductVariants(productId: string, variantsList: any[], baseProduct: any) {
+  const incomingIds = variantsList.map((v: any) => v.id).filter(Boolean);
+  if (incomingIds.length > 0) {
+    await db
+      .delete(productVariants)
+      .where(
+        and(eq(productVariants.productId, productId), notInArray(productVariants.id, incomingIds)),
+      );
+  } else if (variantsList.length === 0) {
+    await db.delete(productVariants).where(eq(productVariants.productId, productId));
+  }
+
+  let totalStock = 0;
+  for (let i = 0; i < variantsList.length; i++) {
+    const v = variantsList[i];
+    const stock = Math.max(0, parseInt(v.stock ?? v.stockQuantity) || 0);
+    totalStock += stock;
+    const price =
+      v.price !== null && v.price !== undefined && v.price !== ""
+        ? Number(v.price)
+        : Number(baseProduct.price || 0);
+    const sku = v.sku || `${baseProduct.sku || productId.slice(0, 6)}-V${i + 1}`;
+
+    if (v.id) {
+      await db
+        .update(productVariants)
+        .set({
+          name: v.name,
+          sku,
+          price,
+          stockQuantity: stock,
+        })
+        .where(eq(productVariants.id, v.id));
+    } else {
+      await db.insert(productVariants).values({
+        id: randomUUID(),
+        productId,
+        name: v.name,
+        sku,
+        price,
+        stockQuantity: stock,
+      });
+    }
+  }
+
+  if (variantsList.length > 0) {
+    await db
+      .update(products)
+      .set({
+        stockQuantity: totalStock,
+        badge:
+          totalStock === 0
+            ? "Stock Out"
+            : baseProduct.badge === "Stock Out"
+              ? null
+              : baseProduct.badge,
+        updatedAt: new Date(),
+      })
+      .where(eq(products.id, productId));
+  }
+
+  return totalStock;
 }
 
 // GET /api/products/categories/all
@@ -60,53 +157,20 @@ productsRouter.post("/categories", requireAuth, requirePermission("products:crea
   return c.json({ success: true, data: { ...newCat, is_active: true, product_count: 0 } }, 201);
 });
 
-// DELETE /api/products/categories/:id
-productsRouter.delete(
-  "/categories/:id",
-  requireAuth,
-  requirePermission("products:delete"),
-  async (c) => {
-    const id = c.req.param("id");
-    await db.delete(categories).where(eq(categories.id, id));
-    return c.json({ success: true, message: "Category deleted" });
-  },
-);
-
-// POST /api/products/batch-stock (bulk stock updates from Admin Inventory)
-productsRouter.post("/batch-stock", requireAuth, requirePermission("products:edit"), async (c) => {
-  const { updates } = await c.req.json(); // array of { id: string, stock: number }
-
-  if (!Array.isArray(updates)) {
-    return c.json({ success: false, error: "Invalid updates format" }, 400);
-  }
-
-  for (const item of updates) {
-    await db
-      .update(products)
-      .set({
-        stockQuantity: Number(item.stock),
-        updatedAt: new Date(),
-      })
-      .where(eq(products.id, item.id));
-  }
-
-  return c.json({ success: true, count: updates.length });
-});
-
 // GET /api/products
 productsRouter.get("/", async (c) => {
-  const query = c.req.query("search");
+  const search = c.req.query("search");
   const categoryId = c.req.query("categoryId");
 
   let items = await db.select().from(products).orderBy(desc(products.createdAt));
 
-  if (query) {
-    const q = query.toLowerCase();
+  if (search) {
+    const q = search.toLowerCase();
     items = items.filter(
       (p: any) =>
         p.name.toLowerCase().includes(q) ||
-        p.sku.toLowerCase().includes(q) ||
-        (p.productType && p.productType.toLowerCase().includes(q)),
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.sku && p.sku.toLowerCase().includes(q)),
     );
   }
   if (categoryId) {
@@ -131,7 +195,56 @@ productsRouter.get("/:id", async (c) => {
   if (!product) {
     return c.json({ success: false, error: "Product not found" }, 404);
   }
-  return c.json({ success: true, data: formatProduct(product) });
+
+  const variants = await db
+    .select()
+    .from(productVariants)
+    .where(eq(productVariants.productId, id))
+    .orderBy(productVariants.name);
+
+  return c.json({ success: true, data: formatProduct(product, variants) });
+});
+
+// GET /api/products/:id/variants (List product variants)
+productsRouter.get("/:id/variants", async (c) => {
+  const id = c.req.param("id");
+  const variants = await db
+    .select()
+    .from(productVariants)
+    .where(eq(productVariants.productId, id))
+    .orderBy(productVariants.name);
+
+  return c.json({ success: true, data: variants });
+});
+
+// PUT /api/products/:id/variants (Atomic upsert of product variants & auto-stock recalculation)
+productsRouter.put("/:id/variants", requireAuth, requirePermission("products:edit"), async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+  const variantsList = Array.isArray(body.variants)
+    ? body.variants
+    : Array.isArray(body)
+      ? body
+      : [];
+
+  const [product] = await db.select().from(products).where(eq(products.id, id));
+  if (!product) {
+    return c.json({ success: false, error: "Product not found" }, 404);
+  }
+
+  const totalStock = await syncProductVariants(id, variantsList, product);
+
+  const updatedVariants = await db
+    .select()
+    .from(productVariants)
+    .where(eq(productVariants.productId, id))
+    .orderBy(productVariants.name);
+
+  return c.json({
+    success: true,
+    data: updatedVariants,
+    totalStock,
+  });
 });
 
 // POST /api/products (Admin)
@@ -147,12 +260,8 @@ productsRouter.post("/", requireAuth, requirePermission("products:create"), asyn
     images = body.image_url ? [body.image_url] : body.imageUrl ? [body.imageUrl] : [];
   }
 
-  // Ensure categoryId exists or fallback
-  let categoryId = body.categoryId || body.category;
-  if (!categoryId) {
-    const [firstCat] = await db.select().from(categories).limit(1);
-    categoryId = firstCat ? firstCat.id : "cat-dog";
-  }
+  // Ensure categoryId exists via foreign key resolution
+  const categoryId = await resolveCategoryId(body.categoryId || body.category_id || body.category);
 
   const stock = body.stock !== undefined ? Number(body.stock) : Number(body.stockQuantity || 0);
   const originalPrice =
@@ -192,6 +301,11 @@ productsRouter.patch("/:id", requireAuth, requirePermission("products:edit"), as
   const id = c.req.param("id");
   const body = await c.req.json();
 
+  const [existing] = await db.select().from(products).where(eq(products.id, id));
+  if (!existing) {
+    return c.json({ success: false, error: "Product not found" }, 404);
+  }
+
   const updateData: any = {
     updatedAt: new Date(),
   };
@@ -222,8 +336,11 @@ productsRouter.patch("/:id", requireAuth, requirePermission("products:edit"), as
   if (body.images !== undefined) updateData.images = body.images;
   else if (body.image_url) updateData.images = [body.image_url];
 
-  if (body.categoryId) updateData.categoryId = body.categoryId;
-  else if (body.category) updateData.categoryId = body.category;
+  if (body.categoryId || body.category_id || body.category) {
+    updateData.categoryId = await resolveCategoryId(
+      body.categoryId || body.category_id || body.category,
+    );
+  }
 
   const [updated] = await db
     .update(products)
@@ -231,7 +348,18 @@ productsRouter.patch("/:id", requireAuth, requirePermission("products:edit"), as
     .where(eq(products.id, id))
     .returning();
 
-  return c.json({ success: true, data: formatProduct(updated) });
+  // If variants array is passed in the update payload, synchronize variants too
+  if (Array.isArray(body.variants)) {
+    await syncProductVariants(id, body.variants, updated);
+  }
+
+  const variants = await db
+    .select()
+    .from(productVariants)
+    .where(eq(productVariants.productId, id))
+    .orderBy(productVariants.name);
+
+  return c.json({ success: true, data: formatProduct(updated, variants) });
 });
 
 // DELETE /api/products/:id

@@ -16,6 +16,7 @@ import { productsRouter } from "./features/products/products.route";
 import { returnsRouter } from "./features/returns/returns.route";
 import { settingsRouter } from "./features/settings/settings.route";
 import { supportRouter } from "./features/support/support.route";
+import { uploadRouter } from "./features/upload/upload.route";
 import { usersRouter } from "./features/users/users.route";
 
 import { logger } from "./infra/lib/logger";
@@ -70,6 +71,7 @@ app.route("/api/support", supportRouter);
 app.route("/api/settings", settingsRouter);
 app.route("/api/incomplete-orders", incompleteOrdersRouter);
 app.route("/api/returns", returnsRouter);
+app.route("/api/upload", uploadRouter);
 app.route("/api/users", usersRouter);
 app.route("/api/customers", usersRouter);
 

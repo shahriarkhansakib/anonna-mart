@@ -4,9 +4,13 @@ import { and, desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { AuthVariables } from "../../infra/middleware/auth";
 import { requireAuth } from "../../infra/middleware/auth";
+import { requireRole } from "../../infra/middleware/role";
 import { processAIChat } from "./ai-support.service";
 
 export const supportRouter = new Hono<{ Variables: AuthVariables }>();
+
+// All support endpoints require authentication
+supportRouter.use("/*", requireAuth);
 
 // Helper to format conversation
 function formatConv(c: any, lastMsg?: any, unreadCount = 0) {
@@ -20,6 +24,7 @@ function formatConv(c: any, lastMsg?: any, unreadCount = 0) {
     updated_at: c.updatedAt ? new Date(c.updatedAt).toISOString() : new Date().toISOString(),
     last_message: lastMsg?.message || null,
     last_message_at: lastMsg?.createdAt ? new Date(lastMsg.createdAt).toISOString() : null,
+    last_sender_role: lastMsg?.senderType || "customer",
     unread_count: unreadCount,
     profile: {
       full_name: c.customerName,
@@ -41,12 +46,21 @@ function formatMsg(m: any) {
   };
 }
 
-// GET /api/support/conversations
+// GET /api/support/conversations (Staff view all; Customers view only their own)
 supportRouter.get("/conversations", async (c) => {
-  const convos = await db
-    .select()
-    .from(chatConversations)
-    .orderBy(desc(chatConversations.updatedAt));
+  const authUser = c.get("user") as any;
+  const isStaff = authUser.role === "admin" || authUser.role === "super_admin";
+
+  let convos: any[];
+  if (isStaff) {
+    convos = await db.select().from(chatConversations).orderBy(desc(chatConversations.updatedAt));
+  } else {
+    convos = await db
+      .select()
+      .from(chatConversations)
+      .where(eq(chatConversations.userId, authUser.id))
+      .orderBy(desc(chatConversations.updatedAt));
+  }
 
   const allMessages = await db.select().from(chatMessages);
 
@@ -62,18 +76,28 @@ supportRouter.get("/conversations", async (c) => {
   return c.json({ success: true, data: formatted });
 });
 
-// POST /api/support/conversations
+// POST /api/support/conversations (Authenticated customer or staff starts a conversation)
 supportRouter.post("/conversations", async (c) => {
+  const authUser = c.get("user") as any;
+  const isStaff = authUser.role === "admin" || authUser.role === "super_admin";
   const body = await c.req.json();
   const id = body.id || randomUUID();
+
+  const userId = isStaff ? body.userId || body.user_id || authUser.id : authUser.id;
+  const customerName = isStaff
+    ? body.customerName || body.customer_name || "Customer"
+    : authUser.name || "Customer";
+  const customerEmail = isStaff
+    ? body.customerEmail || body.customer_email || authUser.email
+    : authUser.email;
 
   const [created] = await db
     .insert(chatConversations)
     .values({
       id,
-      userId: body.userId || body.user_id || null,
-      customerName: body.customerName || body.customer_name || "Guest Customer",
-      customerEmail: body.customerEmail || body.customer_email || null,
+      userId,
+      customerName,
+      customerEmail: customerEmail || null,
       status: body.status || "open",
     })
     .returning();
@@ -84,7 +108,16 @@ supportRouter.post("/conversations", async (c) => {
 // PATCH /api/support/conversations/:id
 supportRouter.patch("/conversations/:id", async (c) => {
   const id = c.req.param("id");
+  const authUser = c.get("user") as any;
+  const isStaff = authUser.role === "admin" || authUser.role === "super_admin";
   const body = await c.req.json();
+
+  if (!isStaff) {
+    const [conv] = await db.select().from(chatConversations).where(eq(chatConversations.id, id));
+    if (!conv || conv.userId !== authUser.id) {
+      return c.json({ error: "Forbidden", message: "Access denied" }, 403);
+    }
+  }
 
   const updateData: any = { updatedAt: new Date() };
   if (body.status !== undefined) updateData.status = body.status;
@@ -98,8 +131,8 @@ supportRouter.patch("/conversations/:id", async (c) => {
   return c.json({ success: true, data: formatConv(updated) });
 });
 
-// DELETE /api/support/conversations/:id
-supportRouter.delete("/conversations/:id", async (c) => {
+// DELETE /api/support/conversations/:id (Staff only)
+supportRouter.delete("/conversations/:id", requireRole("admin"), async (c) => {
   const id = c.req.param("id");
   await db.delete(chatConversations).where(eq(chatConversations.id, id));
   return c.json({ success: true });
@@ -108,6 +141,16 @@ supportRouter.delete("/conversations/:id", async (c) => {
 // GET /api/support/conversations/:id/messages
 supportRouter.get("/conversations/:id/messages", async (c) => {
   const id = c.req.param("id");
+  const authUser = c.get("user") as any;
+  const isStaff = authUser.role === "admin" || authUser.role === "super_admin";
+
+  if (!isStaff) {
+    const [conv] = await db.select().from(chatConversations).where(eq(chatConversations.id, id));
+    if (!conv || conv.userId !== authUser.id) {
+      return c.json({ error: "Forbidden", message: "Access denied" }, 403);
+    }
+  }
+
   const messages = await db
     .select()
     .from(chatMessages)
@@ -120,15 +163,30 @@ supportRouter.get("/conversations/:id/messages", async (c) => {
 // POST /api/support/conversations/:id/messages
 supportRouter.post("/conversations/:id/messages", async (c) => {
   const conversationId = c.req.param("id");
+  const authUser = c.get("user") as any;
+  const isStaff = authUser.role === "admin" || authUser.role === "super_admin";
   const body = await c.req.json();
+
+  if (!isStaff) {
+    const [conv] = await db
+      .select()
+      .from(chatConversations)
+      .where(eq(chatConversations.id, conversationId));
+    if (!conv || conv.userId !== authUser.id) {
+      return c.json({ error: "Forbidden", message: "Access denied" }, 403);
+    }
+  }
+
+  const senderType = isStaff ? body.senderType || body.sender_type || "agent" : "customer";
+  const senderId = isStaff ? body.senderId || body.sender_id || authUser.id : authUser.id;
 
   const [msg] = await db
     .insert(chatMessages)
     .values({
       id: randomUUID(),
       conversationId,
-      senderType: (body.senderType || body.sender_type || "agent") as any,
-      senderId: body.senderId || body.sender_id || null,
+      senderType: senderType as any,
+      senderId,
       message: body.message || "",
       isRead: body.isRead !== undefined ? !!body.isRead : false,
     })
@@ -154,8 +212,8 @@ supportRouter.post("/conversations/:id/read", async (c) => {
 });
 
 // POST /api/support/ai-chat (GATED: Only authenticated users can chat with AI)
-supportRouter.post("/ai-chat", requireAuth, async (c) => {
-  const user = c.get("user");
+supportRouter.post("/ai-chat", async (c) => {
+  const user = c.get("user") as any;
   const body = await c.req.json().catch(() => ({}));
   const userMessage = (body.message || "").trim();
 

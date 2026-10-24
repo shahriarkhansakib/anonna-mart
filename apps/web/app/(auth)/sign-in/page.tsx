@@ -68,7 +68,13 @@ function SignInForm() {
     try {
       await signIn.social({
         provider: "google",
-        callbackURL: redirectUrl && redirectUrl !== "/" ? redirectUrl : "/admin",
+        callbackURL:
+          redirectUrl &&
+          redirectUrl !== "/" &&
+          !redirectUrl.includes("sign-in") &&
+          !redirectUrl.includes("login")
+            ? redirectUrl
+            : "/account",
       });
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to initialize Google sign-in.");
@@ -186,7 +192,7 @@ function SignInForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="admin@anonna.com"
+            placeholder="you@example.com"
             className="min-h-12 w-full rounded-xl border border-input bg-muted/40 px-3.5 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-emerald-600 focus:bg-background focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
           />
         </div>
@@ -202,12 +208,12 @@ function SignInForm() {
             <input
               id="login-password"
               name="password"
-              type={showPassword ? "text" : "password"}
+              type={showPassword || !password ? "text" : "password"}
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="••••••••"
+              placeholder="Enter your password"
               className="min-h-12 w-full rounded-xl border border-input bg-muted/40 px-3.5 pr-12 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-emerald-600 focus:bg-background focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
             />
             <button

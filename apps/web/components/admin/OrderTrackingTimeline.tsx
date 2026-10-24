@@ -1,5 +1,15 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Loader2, MapPin, Package, RefreshCw, Truck } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  CheckCircle,
+  Clock,
+  History,
+  Loader2,
+  MapPin,
+  Package,
+  RefreshCw,
+  Truck,
+  User,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -53,6 +63,14 @@ export function OrderTrackingTimeline({
   const [trackingData, setTrackingData] = useState<any>(null);
   const queryClient = useQueryClient();
 
+  const { data: historyResponse } = useQuery({
+    queryKey: ["order-history", orderId],
+    queryFn: () => ordersApi.getHistory(orderId),
+    enabled: !compact && !!orderId,
+  });
+
+  const historyEntries = historyResponse?.data || [];
+
   const universal = !!courierName && courierName.toLowerCase() !== "steadfast";
   let externalUrl: string | null = null;
   try {
@@ -65,24 +83,16 @@ export function OrderTrackingTimeline({
     if (!consignmentId && !trackingId) return;
     setIsTracking(true);
     try {
-      const action = consignmentId ? "track_by_consignment" : "track_by_tracking_code";
-      const params = consignmentId
-        ? { action, consignment_id: consignmentId }
-        : { action, tracking_code: trackingId };
-
-      const response = await invokeFn("steadfast", { body: params });
-
-      if (response.error) throw new Error(response.error.message);
-
-      const result = response.data;
+      const result = await ordersApi.getTracking(orderId);
       setTrackingData(result);
 
-      const deliveryStatus = result?.delivery_status;
+      const deliveryStatus = result?.status;
       if (deliveryStatus && STEADFAST_STATUS_MAP[deliveryStatus]) {
         const mappedStatus = STEADFAST_STATUS_MAP[deliveryStatus];
         if (mappedStatus !== orderStatus && mappedStatus === "delivered") {
           await ordersApi.update(orderId, { status: "delivered" });
           queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+          queryClient.invalidateQueries({ queryKey: ["order-history", orderId] });
           toast.success("Order auto-marked as delivered based on courier status");
         }
       }
@@ -243,14 +253,65 @@ export function OrderTrackingTimeline({
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Courier Status:</span>
             <Badge variant="outline" className="text-xs capitalize">
-              {trackingData.delivery_status?.replace(/_/g, " ") || "Unknown"}
+              {trackingData.status?.replace(/_/g, " ") ||
+                trackingData.delivery_status?.replace(/_/g, " ") ||
+                "In Review"}
             </Badge>
           </div>
-          {trackingData.updated_at && (
-            <p className="text-muted-foreground">
-              Last updated: {new Date(trackingData.updated_at).toLocaleString()}
+          {trackingData.trackingCode && (
+            <p className="text-muted-foreground font-mono text-[11px]">
+              Tracking: {trackingData.trackingCode}
             </p>
           )}
+        </div>
+      )}
+
+      {/* Status Transition Audit Trail */}
+      {historyEntries.length > 0 && (
+        <div className="pt-2 border-t border-border/60 space-y-2">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <History className="h-3.5 w-3.5" />
+            <span>Status Transition Audit Log ({historyEntries.length})</span>
+          </div>
+
+          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+            {historyEntries.map((h) => (
+              <div
+                key={h.id}
+                className="p-2 rounded-lg bg-card border border-border/70 text-xs flex flex-col gap-1 shadow-2xs"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-medium">
+                    {h.fromStatus && (
+                      <>
+                        <span className="capitalize text-muted-foreground">{h.fromStatus}</span>
+                        <span className="text-muted-foreground">→</span>
+                      </>
+                    )}
+                    <span className="capitalize font-bold text-foreground">{h.toStatus}</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Clock className="h-2.5 w-2.5" />
+                    {new Date(h.createdAt).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+
+                {h.reason && (
+                  <p className="text-[11px] text-muted-foreground italic leading-tight">
+                    "{h.reason}"
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground/80 pt-0.5 border-t border-border/30">
+                  <span>By: {h.changedBy?.name || h.changedBy?.email || "System Automated"}</span>
+                  <span>{new Date(h.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

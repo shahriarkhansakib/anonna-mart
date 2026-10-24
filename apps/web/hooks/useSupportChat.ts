@@ -144,7 +144,7 @@ export const useAdminSupportChat = () => {
         user_email: c.customer_email || c.profile?.email || "",
         unread_count: c.unread_count || 0,
         last_message: c.last_message || "",
-        last_sender_role: "user",
+        last_sender_role: c.last_sender_role === "agent" ? "admin" : c.last_sender_role || "user",
       })) as SupportConversation[];
     },
     enabled: !!user,

@@ -25,7 +25,7 @@ export const AdminBottomNav = ({ pendingOrders = 0 }: { pendingOrders?: number }
               key={path}
               to={path}
               className={cn(
-                "relative flex flex-col items-center justify-center gap-0.5 h-14 text-[10px] font-medium transition-colors",
+                "relative flex flex-col items-center justify-center gap-0.5 h-14 text-[10px] font-medium transition-colors outline-none focus:outline-none select-none",
                 active ? "text-primary" : "text-muted-foreground",
               )}
             >

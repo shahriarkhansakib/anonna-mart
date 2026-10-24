@@ -1,50 +1,23 @@
 import { Hono } from "hono";
+import { bookSteadfastOrder, trackSteadfastConsignment } from "./steadfast.service";
 
 export const courierRouter = new Hono();
 
 // Helper to handle Steadfast order creation
 async function handleSteadfast(body: any) {
-  const apiKey = process.env.STEADFAST_API_KEY;
-  const secretKey = process.env.STEADFAST_SECRET_KEY;
-
-  // If live credentials are available and not mock
-  if (apiKey && secretKey && !apiKey.includes("mock") && !secretKey.includes("mock")) {
-    try {
-      const response = await fetch("https://portal.steadfast.com.bd/api/v1/create_order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Api-Key": apiKey,
-          "Secret-Key": secretKey,
-        },
-        body: JSON.stringify(body),
-      });
-      if (response.ok) {
-        return await response.json();
-      }
-    } catch (e) {
-      console.warn("Steadfast API live call failed, falling back to simulation:", e);
-    }
-  }
-
-  // Fallback simulator for development/staging
-  const randomConsignmentId = Math.floor(100000 + Math.random() * 900000);
-  const trackingCode = `STF-${randomConsignmentId}`;
+  const result = await bookSteadfastOrder({
+    invoice: body.invoice || `INV-${Date.now()}`,
+    recipient_name: body.recipient_name || body.customer_name || "Customer",
+    recipient_phone: body.recipient_phone || body.customer_phone || "01700000000",
+    recipient_address: body.recipient_address || body.shipping_address || "Dhaka",
+    cod_amount: Number(body.cod_amount || 0),
+    note: body.note || "",
+  });
 
   return {
     status: 200,
-    message: "Order placed successfully (Simulated Steadfast Courier)",
-    consignment: {
-      consignment_id: randomConsignmentId,
-      invoice: body.invoice || `INV-${Date.now()}`,
-      tracking_code: trackingCode,
-      recipient_name: body.recipient_name,
-      recipient_phone: body.recipient_phone,
-      recipient_address: body.recipient_address,
-      cod_amount: body.cod_amount || 0,
-      status: "in_review",
-      created_at: new Date().toISOString(),
-    },
+    message: result.message,
+    consignment: result.consignment,
   };
 }
 

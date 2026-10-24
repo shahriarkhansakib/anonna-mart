@@ -45,6 +45,7 @@ import {
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { type ProductCategoryItem, type ProductItem, productsApi } from "@/lib/api/products";
+import { CLOUDINARY_FALLBACK } from "@/lib/constants";
 
 function SectionHeading({
   eyebrow,
@@ -85,13 +86,7 @@ function formatCount(count: number): string {
 }
 
 // Category image map for visual showcases
-const categoryImageMap: Record<string, string> = {
-  "Home Decor": "/images/homedecor.jpeg",
-  Crockeries: "/images/crockeries.jpeg",
-  "Women Dresses": "/images/dress.jpeg",
-  "Grocery Items": "/images/grocery.jpeg",
-  Toiletries: "/images/toiletries.jpeg",
-};
+const categoryImageMap: Record<string, string> = CLOUDINARY_FALLBACK.categories;
 
 // Subtitle context for departments
 const categorySubtitleMap: Record<string, string> = {
@@ -132,7 +127,7 @@ export default function StorefrontHomePage() {
       const primaryImage =
         p.images && p.images.length > 0
           ? p.images[0]
-          : p.imageUrl || p.image_url || "/images/homedecor.jpeg";
+          : p.imageUrl || p.image_url || CLOUDINARY_FALLBACK.defaultProduct;
 
       return {
         id: p.id,
@@ -163,7 +158,7 @@ export default function StorefrontHomePage() {
       name: c.name,
       slug: c.slug,
       description: c.description,
-      image: categoryImageMap[c.name] || "/images/homedecor.jpeg",
+      image: categoryImageMap[c.name] || CLOUDINARY_FALLBACK.defaultProduct,
     }));
   }, [categoriesResponse]);
 
@@ -643,7 +638,7 @@ export default function StorefrontHomePage() {
           <div className="grid lg:min-h-[130px] lg:grid-cols-[0.7fr_1.25fr_1fr]">
             <div className="relative min-h-[120px] bg-emerald-950 sm:min-h-[130px] lg:min-h-full">
               <Image
-                src="/images/WhatsApp Image 2026-10-08 at 3.36.13 PM (1).jpeg"
+                src={CLOUDINARY_FALLBACK.specialOfferBanner}
                 alt="Anonna Mart pantry products selected for the special offer"
                 fill
                 sizes="(max-width: 1024px) 100vw, 25vw"
@@ -1037,7 +1032,7 @@ export default function StorefrontHomePage() {
         >
           <div className="absolute inset-x-0 bottom-0 h-[200px] sm:top-0 sm:h-full">
             <Image
-              src="/images/footer-leaves.jpg"
+              src={CLOUDINARY_FALLBACK.footerLeaves}
               alt=""
               fill
               sizes="(min-width: 1024px) 240px, (min-width: 640px) 176px, 96px"
@@ -1053,7 +1048,7 @@ export default function StorefrontHomePage() {
         >
           <div className="absolute inset-x-0 bottom-0 h-[200px] sm:top-0 sm:h-full">
             <Image
-              src="/images/footer-leaves.jpg"
+              src={CLOUDINARY_FALLBACK.footerLeaves}
               alt=""
               fill
               sizes="(min-width: 1024px) 240px, (min-width: 640px) 176px, 96px"

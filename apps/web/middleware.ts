@@ -31,13 +31,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl);
   }
 
-  // 2. Already logged in users accessing auth pages
+  // 2. Already logged in users accessing auth pages — redirect to account page.
+  // Role-based routing (admin vs customer) is handled client-side by AdminAuthGuard
+  // and the sign-in page useEffect once the user's role is known.
   if (isAuthRoute && hasSessionCookie) {
     const redirectTarget = searchParams.get("redirect");
-    if (redirectTarget && !redirectTarget.includes("sign-in") && !redirectTarget.includes("login")) {
+    if (
+      redirectTarget &&
+      !redirectTarget.includes("sign-in") &&
+      !redirectTarget.includes("login")
+    ) {
       return NextResponse.redirect(new URL(redirectTarget, request.url));
     }
-    return NextResponse.redirect(new URL("/admin", request.url));
+    // Default: send to /account — the account page will redirect admins to /admin client-side
+    return NextResponse.redirect(new URL("/account", request.url));
   }
 
   const response = NextResponse.next();

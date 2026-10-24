@@ -228,12 +228,12 @@ function SignUpForm() {
             <input
               id="signup-password"
               name="password"
-              type={showPassword ? "text" : "password"}
+              type={showPassword || !password ? "text" : "password"}
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="••••••••"
+              placeholder="Enter your password"
               className="min-h-12 w-full rounded-xl border border-input bg-muted/40 px-3.5 pr-12 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-emerald-600 focus:bg-background focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
             />
             <button
@@ -265,12 +265,12 @@ function SignUpForm() {
             <input
               id="signup-confirm-password"
               name="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
+              type={showConfirmPassword || !confirmPassword ? "text" : "password"}
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              placeholder="••••••••"
+              placeholder="Confirm your password"
               className="min-h-12 w-full rounded-xl border border-input bg-muted/40 px-3.5 pr-12 text-sm text-foreground placeholder:text-muted-foreground transition-colors focus:border-emerald-600 focus:bg-background focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
             />
             <button

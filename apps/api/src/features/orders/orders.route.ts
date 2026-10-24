@@ -1,10 +1,23 @@
 import { randomUUID } from "node:crypto";
-import { db, orderItems, orders, users } from "@growmate/db";
-import { and, desc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
+import { db, orderItems, orders, orderStatusHistory, users } from "@growmate/db";
+import {
+  and,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 import { Hono } from "hono";
 import { auth } from "../../infra/lib/auth";
 import { requireAuth } from "../../infra/middleware/auth";
 import { requirePermission } from "../../infra/middleware/require-permission";
+import { bookSteadfastOrder, trackSteadfastConsignment } from "../courier/steadfast.service";
 import { PermissionService } from "../permissions/permission.service";
 
 export const ordersRouter = new Hono();
@@ -66,7 +79,31 @@ function formatOrder(order: any, items: any[] = [], user: any = null) {
   };
 }
 
-// GET /api/orders
+// Helper to record an immutable status transition in the audit log
+async function logStatusTransition(
+  orderId: string,
+  fromStatus: any,
+  toStatus: any,
+  changedBy?: string | null,
+  reason?: string | null,
+  metadata?: Record<string, any>,
+) {
+  try {
+    await db.insert(orderStatusHistory).values({
+      id: randomUUID(),
+      orderId,
+      fromStatus: fromStatus || null,
+      toStatus,
+      changedBy: changedBy || null,
+      reason: reason || null,
+      metadata: metadata || null,
+    });
+  } catch (err) {
+    console.error("Failed to record order status transition audit log:", err);
+  }
+}
+
+// GET /api/orders (Server-side SQL pagination, filtering and search)
 ordersRouter.get("/", requireAuth, async (c) => {
   const user = c.get("user") as any;
   const userPerms = await PermissionService.resolvePermissions(user.id);
@@ -79,72 +116,117 @@ ordersRouter.get("/", requireAuth, async (c) => {
   const status = c.req.query("status");
   const search = c.req.query("search");
   const time = c.req.query("time");
+  const rawPage = Number(c.req.query("page")) || 1;
+  const rawPageSize = Number(c.req.query("pageSize") || c.req.query("limit")) || 25;
 
-  let allOrders = await db.select().from(orders).orderBy(desc(orders.createdAt));
+  const page = Math.max(1, rawPage);
+  const pageSize = Math.min(100, Math.max(1, rawPageSize));
+
+  const conditions: SQL[] = [];
 
   // If customer without staff orders:view permission, restrict to own orders only
   if (!canViewAll) {
-    allOrders = allOrders.filter((o) => o.userId === user.id);
+    conditions.push(eq(orders.userId, user.id));
   }
 
   // Filter out trashed by default unless explicitly requested
   if (status === "trashed") {
-    allOrders = allOrders.filter((o) => !!o.trashedAt);
+    conditions.push(isNotNull(orders.trashedAt));
   } else {
-    allOrders = allOrders.filter((o) => !o.trashedAt);
+    conditions.push(isNull(orders.trashedAt));
     if (status && status !== "all" && status !== "flagged") {
-      allOrders = allOrders.filter((o) => o.status === status);
+      conditions.push(eq(orders.status, status as any));
     }
   }
 
   // Search filter
-  if (search) {
-    const q = search.toLowerCase();
-    allOrders = allOrders.filter(
-      (o) =>
-        o.orderNumber.toLowerCase().includes(q) ||
-        o.customerName.toLowerCase().includes(q) ||
-        o.customerPhone.toLowerCase().includes(q) ||
-        (o.customerEmail && o.customerEmail.toLowerCase().includes(q)) ||
-        (o.trackingCode && o.trackingCode.toLowerCase().includes(q)),
+  if (search && search.trim()) {
+    const q = `%${search.trim().toLowerCase()}%`;
+    conditions.push(
+      or(
+        ilike(orders.orderNumber, q),
+        ilike(orders.customerName, q),
+        ilike(orders.customerPhone, q),
+        ilike(orders.customerEmail, q),
+        ilike(orders.trackingCode, q),
+      )!,
     );
   }
 
-  // Time filter
+  // Time cutoff filter
   if (time && time !== "all") {
     const now = Date.now();
-    let cutoff = 0;
-    if (time === "today") cutoff = now - 24 * 60 * 60 * 1000;
-    else if (time === "7days") cutoff = now - 7 * 24 * 60 * 60 * 1000;
-    else if (time === "30days") cutoff = now - 30 * 24 * 60 * 60 * 1000;
-    else if (time === "90days") cutoff = now - 90 * 24 * 60 * 60 * 1000;
+    let cutoffMs = 0;
+    if (time === "today") cutoffMs = 24 * 60 * 60 * 1000;
+    else if (time === "7days") cutoffMs = 7 * 24 * 60 * 60 * 1000;
+    else if (time === "30days") cutoffMs = 30 * 24 * 60 * 60 * 1000;
+    else if (time === "90days") cutoffMs = 90 * 24 * 60 * 60 * 1000;
 
-    if (cutoff > 0) {
-      allOrders = allOrders.filter((o) => new Date(o.createdAt).getTime() >= cutoff);
+    if (cutoffMs > 0) {
+      const cutoffDate = new Date(now - cutoffMs);
+      conditions.push(gte(orders.createdAt, cutoffDate));
     }
   }
 
-  // Fetch all items for these orders
-  const allItems = await db.select().from(orderItems);
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+  // 1. Efficient total count query
+  const [countResult] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(orders)
+    .where(whereClause);
+  const totalCount = Number(countResult?.count || 0);
+
+  // 2. Paginated orders query using SQL limit and offset
+  const offset = (page - 1) * pageSize;
+  const pagedOrders = await db
+    .select()
+    .from(orders)
+    .where(whereClause)
+    .orderBy(desc(orders.createdAt))
+    .limit(pageSize)
+    .offset(offset);
+
+  // 3. Batch query only the items and users belonging to the paginated slice
+  const orderIds = pagedOrders.map((o) => o.id);
+  const userIds = Array.from(new Set(pagedOrders.map((o) => o.userId).filter(Boolean))) as string[];
+
+  const orderItemsList =
+    orderIds.length > 0
+      ? await db.select().from(orderItems).where(inArray(orderItems.orderId, orderIds))
+      : [];
+
+  const matchedUsers =
+    userIds.length > 0 ? await db.select().from(users).where(inArray(users.id, userIds)) : [];
+
   const itemsByOrderId = new Map<string, any[]>();
-  for (const item of allItems) {
+  for (const item of orderItemsList) {
     const existing = itemsByOrderId.get(item.orderId) || [];
     existing.push(item);
     itemsByOrderId.set(item.orderId, existing);
   }
 
-  const allUsers = await db.select().from(users);
-  const userMap = new Map(allUsers.map((u) => [u.id, u]));
+  const userMap = new Map(matchedUsers.map((u) => [u.id, u]));
 
-  const formatted = allOrders.map((o) =>
+  const formatted = pagedOrders.map((o) =>
     formatOrder(o, itemsByOrderId.get(o.id) || [], o.userId ? userMap.get(o.userId) : null),
   );
+
+  const totalPages = Math.ceil(totalCount / pageSize) || 1;
 
   return c.json({
     success: true,
     data: formatted,
     orders: formatted,
-    totalCount: formatted.length,
+    totalCount,
+    pagination: {
+      page,
+      pageSize,
+      totalCount,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    },
   });
 });
 
@@ -172,6 +254,167 @@ ordersRouter.get("/:id", requireAuth, async (c) => {
     : [null];
 
   return c.json({ success: true, data: formatOrder(order, items, orderCustomer) });
+});
+
+// GET /api/orders/:id/history (Status transition audit trail)
+ordersRouter.get("/:id/history", requireAuth, async (c) => {
+  const id = c.req.param("id");
+  const user = c.get("user") as any;
+
+  const [order] = await db.select().from(orders).where(eq(orders.id, id));
+  if (!order) {
+    return c.json({ success: false, error: "Order not found" }, 404);
+  }
+
+  // Access check
+  if (order.userId !== user.id && user.role !== "admin" && user.role !== "super_admin") {
+    const userPerms = await PermissionService.resolvePermissions(user.id);
+    if (!userPerms.has("orders:view") && !userPerms.has("*")) {
+      return c.json({ success: false, error: "Access denied to order history" }, 403);
+    }
+  }
+
+  const historyEntries = await db
+    .select()
+    .from(orderStatusHistory)
+    .where(eq(orderStatusHistory.orderId, id))
+    .orderBy(desc(orderStatusHistory.createdAt));
+
+  const changerIds = Array.from(
+    new Set(historyEntries.map((h) => h.changedBy).filter(Boolean)),
+  ) as string[];
+
+  const changers =
+    changerIds.length > 0 ? await db.select().from(users).where(inArray(users.id, changerIds)) : [];
+
+  const changerMap = new Map<string, any>(changers.map((u) => [u.id, u]));
+
+  const formattedHistory = historyEntries.map((h) => {
+    const changer = h.changedBy ? changerMap.get(h.changedBy) : null;
+    return {
+      id: h.id,
+      orderId: h.orderId,
+      fromStatus: h.fromStatus,
+      toStatus: h.toStatus,
+      reason: h.reason,
+      metadata: h.metadata,
+      createdAt: h.createdAt.toISOString(),
+      changedBy: changer
+        ? {
+            id: changer.id,
+            name: changer.name,
+            email: changer.email,
+            role: changer.role,
+          }
+        : null,
+    };
+  });
+
+  return c.json({ success: true, data: formattedHistory });
+});
+
+// POST /api/orders/:id/courier/steadfast (Direct Steadfast courier booking)
+ordersRouter.post(
+  "/:id/courier/steadfast",
+  requireAuth,
+  requirePermission("orders:update_status"),
+  async (c) => {
+    const id = c.req.param("id");
+    const user = c.get("user") as any;
+    const body = await c.req.json().catch(() => ({}));
+
+    const [order] = await db.select().from(orders).where(eq(orders.id, id));
+    if (!order) {
+      return c.json({ success: false, error: "Order not found" }, 404);
+    }
+
+    const codAmount =
+      body.cod_amount !== undefined
+        ? Number(body.cod_amount)
+        : order.paymentMethod === "cod"
+          ? order.totalAmount
+          : 0;
+
+    const steadfastPayload = {
+      invoice: order.orderNumber || order.id,
+      recipient_name: body.recipient_name || order.customerName,
+      recipient_phone: body.recipient_phone || order.customerPhone,
+      recipient_address: body.recipient_address || order.shippingAddress,
+      cod_amount: codAmount,
+      note: body.note || `Order #${order.orderNumber} via Anonna Mart`,
+    };
+
+    const courierResult = await bookSteadfastOrder(steadfastPayload);
+
+    if (!courierResult.success || !courierResult.consignment) {
+      return c.json(
+        { success: false, error: courierResult.message || "Courier booking failed" },
+        400,
+      );
+    }
+
+    const trackingCode = courierResult.consignment.tracking_code;
+    const consignmentId = String(courierResult.consignment.consignment_id);
+    const trackingUrl = `https://steadfast.com.bd/t/${trackingCode}`;
+
+    const [updated] = await db
+      .update(orders)
+      .set({
+        status: "processing",
+        courierName: "Steadfast",
+        trackingCode,
+        consignmentId,
+        trackingUrl,
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, id))
+      .returning();
+
+    // Log the courier consignment booking transition
+    await logStatusTransition(
+      id,
+      order.status,
+      "processing",
+      user.id,
+      `Consignment booked with Steadfast (Tracking: ${trackingCode})`,
+      {
+        consignment_id: consignmentId,
+        tracking_code: trackingCode,
+        simulated: courierResult.simulated,
+      },
+    );
+
+    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
+    return c.json({
+      success: true,
+      message: courierResult.message,
+      consignment: courierResult.consignment,
+      data: formatOrder(updated, items),
+    });
+  },
+);
+
+// GET /api/orders/:id/courier/tracking (Live Steadfast consignment tracking status)
+ordersRouter.get("/:id/courier/tracking", requireAuth, async (c) => {
+  const id = c.req.param("id");
+  const [order] = await db.select().from(orders).where(eq(orders.id, id));
+  if (!order) {
+    return c.json({ success: false, error: "Order not found" }, 404);
+  }
+
+  const trackingKey = order.trackingCode || order.consignmentId;
+  if (!trackingKey) {
+    return c.json(
+      {
+        success: false,
+        error: "No courier tracking code or consignment ID attached to this order",
+      },
+      400,
+    );
+  }
+
+  const trackingResult = await trackSteadfastConsignment(trackingKey);
+  return c.json(trackingResult);
 });
 
 // POST /api/orders (Public or Authenticated Customer Checkout)
@@ -206,7 +449,6 @@ ordersRouter.post("/", async (c) => {
       orderNumber,
       userId: resolvedUserId,
       customerName: body.customerName || body.customer_name || "Customer",
-
       customerEmail: body.customerEmail || body.customer_email || "customer@example.com",
       customerPhone: body.customerPhone || body.customer_phone || "01700000000",
       shippingAddress: body.shippingAddress || body.shipping_address || "Dhaka, Bangladesh",
@@ -238,6 +480,15 @@ ordersRouter.post("/", async (c) => {
     }
   }
 
+  // Record initial order creation in status history
+  await logStatusTransition(
+    id,
+    null,
+    newOrder.status,
+    resolvedUserId,
+    "Order placed via storefront checkout",
+  );
+
   const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
   return c.json({ success: true, data: formatOrder(newOrder, items) }, 201);
 });
@@ -249,19 +500,34 @@ ordersRouter.post(
   requirePermission("orders:update_status"),
   async (c) => {
     const id = c.req.param("id");
+    const user = c.get("user") as any;
     const body = await c.req.json().catch(() => ({}));
+
+    const [existing] = await db.select().from(orders).where(eq(orders.id, id));
+    if (!existing) {
+      return c.json({ success: false, error: "Order not found" }, 404);
+    }
 
     const [updated] = await db
       .update(orders)
       .set({
         status: "processing",
-        trackingCode: body.trackingId || body.tracking_id || null,
-        consignmentId: body.consignmentId || body.consignment_id || null,
-        courierName: body.courierName || body.courier_name || "Steadfast",
+        trackingCode: body.trackingId || body.tracking_id || existing.trackingCode || null,
+        consignmentId: body.consignmentId || body.consignment_id || existing.consignmentId || null,
+        courierName: body.courierName || body.courier_name || existing.courierName || "Steadfast",
         updatedAt: new Date(),
       })
       .where(eq(orders.id, id))
       .returning();
+
+    await logStatusTransition(
+      id,
+      existing.status,
+      "processing",
+      user.id,
+      "Order confirmed and accepted by staff",
+      { trackingId: updated.trackingCode, consignmentId: updated.consignmentId },
+    );
 
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
     return c.json({ success: true, data: formatOrder(updated, items) });
@@ -271,18 +537,27 @@ ordersRouter.post(
 // POST /api/orders/:id/reject
 ordersRouter.post("/:id/reject", requireAuth, requirePermission("orders:cancel"), async (c) => {
   const id = c.req.param("id");
-
+  const user = c.get("user") as any;
   const body = await c.req.json().catch(() => ({}));
+
+  const [existing] = await db.select().from(orders).where(eq(orders.id, id));
+  if (!existing) {
+    return c.json({ success: false, error: "Order not found" }, 404);
+  }
+
+  const reason = body.reason || body.rejection_reason || "Declined by store admin";
 
   const [updated] = await db
     .update(orders)
     .set({
       status: "rejected",
-      rejectionReason: body.reason || body.rejection_reason || "Declined by store admin",
+      rejectionReason: reason,
       updatedAt: new Date(),
     })
     .where(eq(orders.id, id))
     .returning();
+
+  await logStatusTransition(id, existing.status, "rejected", user.id, reason);
 
   const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
   return c.json({ success: true, data: formatOrder(updated, items) });
@@ -294,6 +569,7 @@ ordersRouter.post(
   requireAuth,
   requirePermission("orders:update_status"),
   async (c) => {
+    const user = c.get("user") as any;
     const { ids, status } = await c.req.json();
 
     if (!Array.isArray(ids) || !status) {
@@ -301,13 +577,21 @@ ordersRouter.post(
     }
 
     for (const id of ids) {
-      await db
-        .update(orders)
-        .set({
-          status,
-          updatedAt: new Date(),
-        })
+      const [existing] = await db
+        .select({ status: orders.status })
+        .from(orders)
         .where(eq(orders.id, id));
+      if (existing) {
+        await db
+          .update(orders)
+          .set({
+            status,
+            updatedAt: new Date(),
+          })
+          .where(eq(orders.id, id));
+
+        await logStatusTransition(id, existing.status, status, user.id, "Bulk status update");
+      }
     }
 
     return c.json({ success: true, count: ids.length });
@@ -317,8 +601,14 @@ ordersRouter.post(
 // PATCH /api/orders/:id/trash (soft-delete or restore)
 ordersRouter.patch("/:id/trash", requireAuth, requirePermission("orders:cancel"), async (c) => {
   const id = c.req.param("id");
+  const user = c.get("user") as any;
   const body = await c.req.json().catch(() => ({}));
   const restore = body.restore === true;
+
+  const [existing] = await db.select().from(orders).where(eq(orders.id, id));
+  if (!existing) {
+    return c.json({ success: false, error: "Order not found" }, 404);
+  }
 
   const [updated] = await db
     .update(orders)
@@ -329,13 +619,27 @@ ordersRouter.patch("/:id/trash", requireAuth, requirePermission("orders:cancel")
     .where(eq(orders.id, id))
     .returning();
 
+  await logStatusTransition(
+    id,
+    existing.status,
+    existing.status,
+    user.id,
+    restore ? "Order restored from trash" : "Order moved to trash",
+  );
+
   return c.json({ success: true, data: formatOrder(updated) });
 });
 
 // PATCH /api/orders/:id (general update)
 ordersRouter.patch("/:id", requireAuth, requirePermission("orders:update_status"), async (c) => {
   const id = c.req.param("id");
+  const user = c.get("user") as any;
   const body = await c.req.json();
+
+  const [existing] = await db.select().from(orders).where(eq(orders.id, id));
+  if (!existing) {
+    return c.json({ success: false, error: "Order not found" }, 404);
+  }
 
   const updateData: any = {
     updatedAt: new Date(),
@@ -357,6 +661,20 @@ ordersRouter.patch("/:id", requireAuth, requirePermission("orders:update_status"
   if (body.notes !== undefined) updateData.notes = body.notes;
 
   const [updated] = await db.update(orders).set(updateData).where(eq(orders.id, id)).returning();
+
+  if (body.status && body.status !== existing.status) {
+    await logStatusTransition(
+      id,
+      existing.status,
+      body.status,
+      user.id,
+      body.rejection_reason || body.rejectionReason || "Status updated via order edit",
+      {
+        trackingCode: updated.trackingCode,
+        consignmentId: updated.consignmentId,
+      },
+    );
+  }
 
   const items = await db.select().from(orderItems).where(eq(orderItems.orderId, id));
   return c.json({ success: true, data: formatOrder(updated, items) });

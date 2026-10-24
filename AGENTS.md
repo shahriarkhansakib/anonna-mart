@@ -169,13 +169,17 @@ For granular procedural skills and architecture rules, refer to:
   * [`api-development.md`](.agents/skills/api-development.md): Step-by-step Hono endpoint blueprint.
   * [`testing-and-qa.md`](.agents/skills/testing-and-qa.md): Writing robust tests and stress tests.
   * [`admin-pbac-permissions.md`](.agents/skills/admin-pbac-permissions.md): Permission registry and PBAC.
+  * [`ui-and-ux-polish.md`](.agents/skills/ui-and-ux-polish.md): Storefront & Admin UI/UX inspection, WCAG audit, and responsive workflow.
 * **Architecture Rules:** [`.agents/rules/`](.agents/rules/)
   * [`architecture-and-code-style.md`](.agents/rules/architecture-and-code-style.md): Clean code standards.
   * [`database-conventions.md`](.agents/rules/database-conventions.md): Schema design and query rules.
   * [`security-and-credentials.md`](.agents/rules/security-and-credentials.md): Auth, secrets, and sanitization.
   * [`ui-and-branding.md`](.agents/rules/ui-and-branding.md): Dual-branding, themes, and design tokens.
+  * [`ui-avoid-list.md`](.agents/rules/ui-avoid-list.md): Prohibited patterns and protected functional systems.
+  * [`storefront-design-system.md`](.agents/rules/storefront-design-system.md): Semantic tokens, typography scale, and responsive grids.
 * **Architecture Decision Records (ADRs):** [`.agents/decisions/`](.agents/decisions/)
   * [`0001-deterministic-single-database-architecture.md`](.agents/decisions/0001-deterministic-single-database-architecture.md)
   * [`0002-dual-mode-cloud-and-local-redis-db.md`](.agents/decisions/0002-dual-mode-cloud-and-local-redis-db.md)
   * [`0003-unified-admin-and-store-branding.md`](.agents/decisions/0003-unified-admin-and-store-branding.md)
   * [`0004-monorepo-structure-and-routing.md`](.agents/decisions/0004-monorepo-structure-and-routing.md)
+  * [`0005-storefront-and-admin-design-system.md`](.agents/decisions/0005-storefront-and-admin-design-system.md)

@@ -87,6 +87,7 @@ settingsRouter.get("/", async (c) => {
       orderSettings: settings.orderSettings || defaultOrderSettings,
       notificationSettings: isStaff ? settings.notificationSettings || {} : {},
       connectors: isStaff ? settings.connectors || {} : {},
+      platformSettings: isStaff ? settings.platformSettings || {} : {},
     },
   });
 });
@@ -101,6 +102,8 @@ settingsRouter.post("/", requireAuth, requirePermission("settings:manage"), asyn
     body.shippingSettings = body.value;
   } else if (body.key === "brand_assets" || body.key === "store_settings") {
     body.storeSettings = body.value;
+  } else if (body.key === "platform" || body.key === "platform_settings") {
+    body.platformSettings = body.value;
   }
 
   const [existing] = await db.select().from(adminSettings).where(eq(adminSettings.id, "default"));
@@ -124,6 +127,9 @@ settingsRouter.post("/", requireAuth, requirePermission("settings:manage"), asyn
         connectors: body.connectors
           ? { ...(existing.connectors || {}), ...body.connectors }
           : existing.connectors,
+        platformSettings: body.platformSettings
+          ? { ...(existing.platformSettings || {}), ...body.platformSettings }
+          : existing.platformSettings,
         updatedAt: new Date(),
       })
       .where(eq(adminSettings.id, "default"))
@@ -141,6 +147,7 @@ settingsRouter.post("/", requireAuth, requirePermission("settings:manage"), asyn
       orderSettings: body.orderSettings || {},
       notificationSettings: body.notificationSettings || {},
       connectors: body.connectors || {},
+      platformSettings: body.platformSettings || {},
     })
     .returning();
 

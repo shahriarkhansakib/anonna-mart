@@ -16,9 +16,11 @@
     "db:push": "pnpm --filter @growmate/db push --force",
     "db:studio": "pnpm --filter @growmate/db studio",
     "db:generate": "pnpm --filter @growmate/db generate",
-    "db:reset": "docker compose down -v --remove-orphans && docker compose up -d --wait && pnpm db:push && pnpm db:seed",
-    "db:seed": "pnpm --filter @growmate/db seed && pnpm --filter @growmate/api seed:admin",
-    "db:seed:admin": "pnpm --filter @growmate/api seed:admin"
+    "db:reset": "pnpm --filter @growmate/db reset && pnpm db:push && pnpm db:seed",
+    "db:seed": "pnpm --filter @growmate/db seed",
+    "db:seed:admin": "pnpm --filter @growmate/db seed:admin",
+    "db:seed:cloudinary": "pnpm --filter @growmate/db seed:cloudinary",
+    "db:docker:reset": "docker compose down -v --remove-orphans && docker compose up -d --wait && pnpm db:push && pnpm db:seed"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",

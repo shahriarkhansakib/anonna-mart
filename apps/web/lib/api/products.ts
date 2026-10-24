@@ -83,4 +83,14 @@ export const productsApi = {
     apiFetch<{ success: boolean; message: string }>(`/api/products/categories/${id}`, {
       method: "DELETE",
     }),
+  getVariants: (id: string) =>
+    apiFetch<{ success: boolean; data: any[] }>(`/api/products/${id}/variants`),
+  updateVariants: (id: string, variants: any[]) =>
+    apiFetch<{ success: boolean; data: any[]; totalStock: number }>(
+      `/api/products/${id}/variants`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ variants }),
+      },
+    ),
 };

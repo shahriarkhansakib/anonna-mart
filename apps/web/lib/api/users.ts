@@ -57,4 +57,15 @@ export const usersApi = {
       method: "POST",
       body: JSON.stringify({ amount, reason, created_by: createdBy }),
     }),
+  getCredits: () =>
+    apiFetch<{
+      success: boolean;
+      data: Array<{
+        id: string;
+        customer_user_id: string;
+        amount: number;
+        reason: string;
+        created_at: string;
+      }>;
+    }>("/api/users/credits"),
 };

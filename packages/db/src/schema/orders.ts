@@ -3,6 +3,7 @@ import {
   doublePrecision,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -84,6 +85,26 @@ export const orderItems = pgTable("order_items", {
   totalPrice: doublePrecision("total_price").notNull(),
 });
 
+export const orderStatusHistory = pgTable(
+  "order_status_history",
+  {
+    id: text("id").primaryKey(),
+    orderId: text("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    fromStatus: orderStatusEnum("from_status"),
+    toStatus: orderStatusEnum("to_status").notNull(),
+    changedBy: text("changed_by").references(() => users.id, { onDelete: "set null" }),
+    reason: text("reason"),
+    metadata: jsonb("metadata").$type<Record<string, any>>(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("order_status_history_order_id_idx").on(table.orderId),
+    index("order_status_history_created_at_idx").on(table.createdAt),
+  ],
+);
+
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   user: one(users, {
     fields: [orders.userId],
@@ -94,6 +115,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     references: [deliveryZones.id],
   }),
   items: many(orderItems),
+  statusHistory: many(orderStatusHistory),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
@@ -107,6 +129,19 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   }),
 }));
 
+export const orderStatusHistoryRelations = relations(orderStatusHistory, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderStatusHistory.orderId],
+    references: [orders.id],
+  }),
+  changedByUser: one(users, {
+    fields: [orderStatusHistory.changedBy],
+    references: [users.id],
+  }),
+}));
+
 export type Order = typeof orders.$inferSelect;
 export type NewOrder = typeof orders.$inferInsert;
 export type OrderItem = typeof orderItems.$inferSelect;
+export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect;
+export type NewOrderStatusHistory = typeof orderStatusHistory.$inferInsert;

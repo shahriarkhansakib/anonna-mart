@@ -41,6 +41,8 @@ export interface SettingsData {
     facebookPixel?: { pixelId?: string; enabled?: boolean };
     googleTagManager?: { containerId?: string; enabled?: boolean };
   };
+  platformSettings?: Record<string, any>;
+  platform?: Record<string, any>;
 }
 
 export const settingsApi = {

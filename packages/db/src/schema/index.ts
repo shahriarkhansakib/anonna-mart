@@ -1,6 +1,7 @@
 export * from "./auth";
 export * from "./cms";
 export * from "./coupons";
+export * from "./customer-accounts";
 export * from "./delivery-zones";
 export * from "./incomplete-orders";
 export * from "./orders";

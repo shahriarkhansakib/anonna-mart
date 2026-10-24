@@ -258,7 +258,11 @@ const AdminSettingsContent = () => {
           notifications: d.notificationSettings
             ? { ...defaultNotifications, ...d.notificationSettings }
             : defaultNotifications,
-          platform: defaultPlatformSettings,
+          platform: d.platformSettings
+            ? { ...defaultPlatformSettings, ...d.platformSettings }
+            : d.platform
+              ? { ...defaultPlatformSettings, ...d.platform }
+              : defaultPlatformSettings,
           brand: {
             ...defaultBrandAssets,
             logo_url: d.storeSettings?.logoUrl || defaultBrandAssets.logo_url,

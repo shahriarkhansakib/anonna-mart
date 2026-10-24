@@ -75,7 +75,7 @@ export const AdminSidebar = ({
         to={item.path}
         onMouseEnter={() => prefetchRoute(item.path)}
         className={cn(
-          "relative flex items-center gap-3 rounded-xl text-sm font-medium transition-colors duration-200",
+          "relative flex items-center gap-3 rounded-xl text-sm font-medium transition-colors duration-200 outline-none focus:outline-none focus-visible:outline-none select-none",
           "h-[clamp(24px,4.6vh,38px)] min-h-0 py-0",
           collapsed ? "px-3 justify-center mx-auto" : "px-3",
           isActive
@@ -209,7 +209,7 @@ export const AdminSidebar = ({
               size="sm"
               onClick={onToggle}
               className={cn(
-                "w-full flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl",
+                "w-full flex items-center gap-2 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl outline-none focus:outline-none focus-visible:outline-none",
                 collapsed ? "justify-center px-2 h-9" : "justify-start px-3 h-9",
               )}
             >

@@ -274,6 +274,7 @@ export const productFormSchema = z.object({
     .string()
     .min(1, "Category is required")
     .max(100, "Category must be less than 100 characters"),
+  category_id: z.string().optional().nullable().or(z.literal("")),
   product_type: z
     .string()
     .max(100, "Product type must be less than 100 characters")

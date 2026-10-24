@@ -58,49 +58,29 @@ export const SendToCourierDialog = ({ isOpen, onClose, order }: SendToCourierDia
 
     setIsSubmitting(true);
     try {
-      const response = await invokeFn("steadfast", {
-        body: {
-          action: "create_order",
-          invoice: order.id,
-          recipient_name: customerName,
-          recipient_phone: customerPhone,
-          recipient_address: customerAddress,
-          cod_amount: codAmount,
-          note: `Order #${order.id.slice(0, 8)} - ${Array.isArray(order.items) ? order.items.length : 0} items`,
-        },
+      const res = await ordersApi.sendToSteadfast(order.id, {
+        recipient_name: customerName,
+        recipient_phone: customerPhone,
+        recipient_address: customerAddress,
+        cod_amount: codAmount,
+        note: `Order #${order.id.slice(0, 8)} - ${Array.isArray(order.items) ? order.items.length : 0} items`,
       });
 
-      if (response.error) throw new Error(response.error.message);
-
-      const result = response.data;
-
-      if (result?.consignment?.tracking_code || result?.consignment?.consignment_id) {
-        await ordersApi.update(order.id, {
-          status: "processing",
-          courier_name: "Steadfast",
-          tracking_url: null,
-          tracking_id: result.consignment.tracking_code || null,
-          consignment_id: String(result.consignment.consignment_id) || null,
-        });
-
-        await createOrderNotification({
-          userId: order.user_id,
-          orderId: order.id,
-          status: "processing",
-          orderTotal: order.total_amount,
-        });
-
-        toast.success(`Order sent to Steadfast. Tracking: ${result.consignment.tracking_code}`);
-        queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
-        handleClose();
-      } else if (result?.error || result?.errors) {
-        const errMsg = result.errors
-          ? Object.values(result.errors).flat().join(", ")
-          : result.error || "Courier rejected the order";
-        throw new Error(errMsg);
-      } else {
-        throw new Error("Unexpected response from courier service");
+      if (!res.success || !res.consignment) {
+        throw new Error(res.message || "Failed to send to courier");
       }
+
+      await createOrderNotification({
+        userId: order.user_id,
+        orderId: order.id,
+        status: "processing",
+        orderTotal: order.total_amount,
+      });
+
+      toast.success(`Order sent to Steadfast. Tracking: ${res.consignment.tracking_code}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["order-history", order.id] });
+      handleClose();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to send to courier";
       toast.error(errorMessage);

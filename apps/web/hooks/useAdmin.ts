@@ -116,7 +116,11 @@ export const useAdminOrders = (
     placeholderData: (prev) => prev,
     queryFn: async () => {
       try {
-        const res = await ordersApi.list(filters);
+        const res = await ordersApi.list({
+          ...filters,
+          page: page + 1,
+          pageSize,
+        });
         const ordersList: AdminOrder[] = (res?.orders || res?.data || []).map((o: any) => ({
           id: o.id,
           user_id: o.userId || o.user_id || o.id,
@@ -139,9 +143,15 @@ export const useAdminOrders = (
           },
         }));
 
+        const totalCount = res?.pagination?.totalCount ?? res?.totalCount ?? ordersList.length;
+        const totalPages = res?.pagination?.totalPages ?? (Math.ceil(totalCount / pageSize) || 1);
+
         return {
           orders: ordersList,
-          totalCount: res?.totalCount || ordersList.length,
+          totalCount,
+          totalPages,
+          hasNextPage: res?.pagination?.hasNextPage ?? page + 1 < totalPages,
+          hasPrevPage: res?.pagination?.hasPrevPage ?? page > 0,
           page,
           pageSize,
         };
@@ -150,6 +160,9 @@ export const useAdminOrders = (
         return {
           orders: [],
           totalCount: 0,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
           page,
           pageSize,
         };

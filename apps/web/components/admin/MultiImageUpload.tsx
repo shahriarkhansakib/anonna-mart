@@ -33,12 +33,25 @@ export function MultiImageUpload({
     }
     try {
       const compressed = await compressImage(file, "product");
-      return new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(compressed.file);
+      const formData = new FormData();
+      formData.append("file", compressed.file);
+      formData.append("folder", folder ? `anonna-mart/${folder}` : "anonna-mart/catalog");
+
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
       });
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(
+          errJson.error || errJson.message || `Upload failed with status ${response.status}`,
+        );
+      }
+
+      const res = await response.json();
+      return res.data?.secure_url || res.data?.url || null;
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");
       return null;

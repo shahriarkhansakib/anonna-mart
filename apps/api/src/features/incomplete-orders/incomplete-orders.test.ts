@@ -28,12 +28,8 @@ describe("Incomplete Orders & Abandoned Cart Recovery API", () => {
     expect(body.data).toHaveProperty("id");
   });
 
-  it("GET /api/incomplete-orders should return captured leads list", async () => {
+  it("GET /api/incomplete-orders without authentication should return 401 Unauthorized (PII protection)", async () => {
     const res = await app.request("/api/incomplete-orders");
-    expect(res.status).toBe(200);
-
-    const body = await res.json();
-    expect(body.success).toBe(true);
-    expect(Array.isArray(body.data)).toBe(true);
+    expect(res.status).toBe(401);
   });
 });

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { AIChatWidget } from "@/components/storefront/AIChatWidget";
 import { CartDrawer } from "@/components/storefront/CartDrawer";
@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {children}
                 <CartDrawer />
                 <AIChatWidget />
-                <Toaster richColors position="top-right" />
+                <Toaster />
               </WishlistProvider>
             </CartProvider>
           </QueryProvider>

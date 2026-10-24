@@ -20,6 +20,7 @@ import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { type ProductCategoryItem, type ProductItem, productsApi } from "@/lib/api/products";
+import { CLOUDINARY_FALLBACK } from "@/lib/constants";
 import { ProductCard } from "./ProductCard";
 import { CartDrawerPanel } from "./StorefrontPanels";
 import { formatTaka, type StorefrontCategory, type StorefrontProduct } from "./types";
@@ -57,7 +58,7 @@ export function ProductListingPage() {
       const primaryImage =
         p.images && p.images.length > 0
           ? p.images[0]
-          : p.imageUrl || p.image_url || "/images/homedecor.jpeg";
+          : p.imageUrl || p.image_url || CLOUDINARY_FALLBACK.defaultProduct;
       return {
         id: p.id,
         name: p.name,

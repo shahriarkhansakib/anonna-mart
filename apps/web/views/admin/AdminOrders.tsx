@@ -28,7 +28,7 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { FraudAnalysisPanel } from "@/components/admin/FraudAnalysisPanel";
@@ -93,13 +93,23 @@ const AdminOrders = () => {
   const { isAdmin } = useAdmin();
   useAdminRealtimeDashboard(isAdmin);
   const [adminOrderPage, setAdminOrderPage] = useState(0);
-  const { data: ordersData, isLoading } = useAdminOrders(adminOrderPage);
-  const orders = ordersData?.orders ?? [];
-
+  const [pageSize, setPageSize] = useState(25);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
   const [statusFilter, setStatusFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
+
+  const { data: ordersData, isLoading } = useAdminOrders(adminOrderPage, pageSize, {
+    status: statusFilter,
+    search: debouncedSearch,
+    time: timeFilter,
+  });
+  const orders = ordersData?.orders ?? [];
+
+  // Reset pagination to page 0 whenever filter conditions change
+  useEffect(() => {
+    setAdminOrderPage(0);
+  }, [debouncedSearch, statusFilter, timeFilter]);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState<any | null>(null);
@@ -465,28 +475,14 @@ const AdminOrders = () => {
   };
 
   const filteredOrders = useMemo(() => {
-    return timeFilteredOrders.filter((order) => {
-      const customerName = getCustomerName(order).toLowerCase();
-      const lowerQuery = debouncedSearch.toLowerCase();
-      const matchesSearch =
-        !debouncedSearch ||
-        order.id.toLowerCase().includes(lowerQuery) ||
-        order.shipping_address?.toLowerCase().includes(lowerQuery) ||
-        customerName.includes(lowerQuery) ||
-        order.tracking_id?.toLowerCase().includes(lowerQuery);
-
-      if (statusFilter === "trashed") return matchesSearch;
-      if (statusFilter === "flagged") {
+    if (statusFilter === "flagged") {
+      return orders.filter((order) => {
         const analysis = fraudAnalysisMap.get(order.id);
-        return (
-          matchesSearch && analysis && (analysis.level === "medium" || analysis.level === "high")
-        );
-      }
-
-      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [timeFilteredOrders, debouncedSearch, statusFilter, fraudAnalysisMap]);
+        return analysis && (analysis.level === "medium" || analysis.level === "high");
+      });
+    }
+    return orders;
+  }, [orders, statusFilter, fraudAnalysisMap]);
 
   // Bulk selection helpers (depend on filteredOrders) — any order can be selected
   const pendingFilteredIds = useMemo(() => filteredOrders.map((o) => o.id), [filteredOrders]);
@@ -1139,6 +1135,58 @@ const AdminOrders = () => {
                   })}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Server-Side Pagination Bar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-border bg-card/60 rounded-b-2xl text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <span>
+                  Showing {ordersData?.totalCount === 0 ? 0 : adminOrderPage * pageSize + 1} to{" "}
+                  {Math.min((adminOrderPage + 1) * pageSize, ordersData?.totalCount || 0)} of{" "}
+                  <strong className="text-foreground">{ordersData?.totalCount || 0}</strong> orders
+                </span>
+                <span className="hidden sm:inline-block">•</span>
+                <div className="flex items-center gap-1.5">
+                  <span>Page size:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setAdminOrderPage(0);
+                    }}
+                    className="h-7 rounded-md border border-input bg-background px-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs gap-1"
+                  onClick={() => setAdminOrderPage((p) => Math.max(0, p - 1))}
+                  disabled={adminOrderPage === 0 || isLoading}
+                >
+                  Previous
+                </Button>
+                <span className="px-2 text-xs font-semibold text-foreground">
+                  Page {adminOrderPage + 1} of {ordersData?.totalPages || 1}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs gap-1"
+                  onClick={() => setAdminOrderPage((p) => p + 1)}
+                  disabled={!ordersData?.hasNextPage || isLoading}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </>
         )}

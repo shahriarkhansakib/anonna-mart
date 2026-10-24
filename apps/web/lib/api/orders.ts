@@ -52,21 +52,83 @@ export interface OrderItem {
   } | null;
 }
 
+export interface OrderHistoryItem {
+  id: string;
+  orderId: string;
+  fromStatus: string | null;
+  toStatus: string;
+  reason: string | null;
+  metadata: any;
+  createdAt: string;
+  changedBy?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  } | null;
+}
+
+export interface OrdersListResponse {
+  success: boolean;
+  data: OrderItem[];
+  orders: OrderItem[];
+  totalCount: number;
+  pagination?: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 export const ordersApi = {
-  list: (params?: { status?: string; search?: string; time?: string }) => {
+  list: (params?: {
+    status?: string;
+    search?: string;
+    time?: string;
+    page?: number;
+    pageSize?: number;
+  }) => {
     const sp = new URLSearchParams();
     if (params?.status && params.status !== "all") sp.set("status", params.status);
     if (params?.search) sp.set("search", params.search);
     if (params?.time && params.time !== "all") sp.set("time", params.time);
+    if (params?.page) sp.set("page", String(params.page));
+    if (params?.pageSize) sp.set("pageSize", String(params.pageSize));
     const qs = sp.toString() ? `?${sp.toString()}` : "";
-    return apiFetch<{
-      success: boolean;
-      data: OrderItem[];
-      orders: OrderItem[];
-      totalCount: number;
-    }>(`/api/orders${qs}`);
+    return apiFetch<OrdersListResponse>(`/api/orders${qs}`);
   },
   get: (id: string) => apiFetch<{ success: boolean; data: OrderItem }>(`/api/orders/${id}`),
+  getHistory: (id: string) =>
+    apiFetch<{ success: boolean; data: OrderHistoryItem[] }>(`/api/orders/${id}/history`),
+  sendToSteadfast: (
+    id: string,
+    payload: {
+      recipient_name?: string;
+      recipient_phone?: string;
+      recipient_address?: string;
+      cod_amount?: number;
+      note?: string;
+    },
+  ) =>
+    apiFetch<{
+      success: boolean;
+      message: string;
+      consignment: any;
+      data: OrderItem;
+    }>(`/api/orders/${id}/courier/steadfast`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  getTracking: (id: string) =>
+    apiFetch<{
+      success: boolean;
+      trackingCode?: string;
+      status?: string;
+      history?: Array<{ status: string; timestamp: string; location?: string }>;
+    }>(`/api/orders/${id}/courier/tracking`),
   create: (data: any) =>
     apiFetch<{ success: boolean; data: OrderItem }>("/api/orders", {
       method: "POST",

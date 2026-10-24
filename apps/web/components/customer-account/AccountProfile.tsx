@@ -27,68 +27,68 @@ export function AccountProfile() {
 
   return (
     <section
-      className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8"
+      className="rounded-3xl border border-border bg-card p-6 shadow-xs sm:p-8 text-card-foreground"
       aria-labelledby="profile-heading"
     >
-      <div className="border-b border-slate-100 pb-5">
-        <p className="text-xs font-bold uppercase tracking-wider text-brand-700">Account Details</p>
-        <h1 id="profile-heading" className="mt-1 text-2xl font-black text-slate-900">
+      <div className="border-b border-border pb-5">
+        <p className="text-xs font-bold uppercase tracking-wider text-primary">Account Details</p>
+        <h1 id="profile-heading" className="mt-1 text-2xl font-black text-foreground">
           My Profile
         </h1>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Manage your personal details and authenticated account credentials.
         </p>
       </div>
 
       <div className="mt-6 max-w-xl">
-        <div className="flex items-center gap-4 rounded-2xl bg-slate-50 p-4 border border-slate-100">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-900 text-lg font-black text-white">
+        <div className="flex items-center gap-4 rounded-2xl bg-muted/40 p-4 border border-border">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-lg font-black text-primary-foreground shadow-xs">
             {user?.name?.[0]?.toUpperCase() || "U"}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-black text-slate-900">{user?.name || "Customer"}</h2>
+              <h2 className="text-base font-black text-foreground">{user?.name || "Customer"}</h2>
               {(user as any)?.role === "admin" ? (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">
                   <Shield className="h-3 w-3" /> Store Admin
                 </span>
               ) : (
-                <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                <span className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                   Customer
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500">{user?.email}</p>
+            <p className="text-xs text-muted-foreground">{user?.email}</p>
           </div>
         </div>
 
         {!isEditing ? (
           <div className="mt-6 space-y-4">
-            <div className="rounded-2xl border border-slate-100 p-4 space-y-3">
+            <div className="rounded-2xl border border-border bg-muted/20 p-4 space-y-3">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Full Name
                 </span>
-                <p className="text-sm font-bold text-slate-900">{name || "Not provided"}</p>
+                <p className="text-sm font-bold text-foreground">{name || "Not provided"}</p>
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Email Address
                 </span>
-                <p className="text-sm font-bold text-slate-900">{email || "Not provided"}</p>
+                <p className="text-sm font-bold text-foreground">{email || "Not provided"}</p>
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   Contact Phone
                 </span>
-                <p className="text-sm font-bold text-slate-900">{phone}</p>
+                <p className="text-sm font-bold text-foreground">{phone}</p>
               </div>
             </div>
 
             <button
               type="button"
               onClick={() => setIsEditing(true)}
-              className="rounded-xl bg-brand-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-brand-950 shadow-xs"
+              className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 shadow-xs"
             >
               Edit Contact Details
             </button>
@@ -96,45 +96,51 @@ export function AccountProfile() {
         ) : (
           <form onSubmit={handleSave} className="mt-6 space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+              <label className="block text-xs font-bold text-muted-foreground mb-1">
+                Full Name
+              </label>
               <input
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs outline-none focus:border-brand-700"
+                className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+              <label className="block text-xs font-bold text-muted-foreground mb-1">
+                Email Address
+              </label>
               <input
                 disabled
                 value={email}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-500 cursor-not-allowed"
+                className="w-full rounded-xl border border-border bg-muted/60 px-3.5 py-2.5 text-xs text-muted-foreground cursor-not-allowed"
               />
-              <span className="mt-1 block text-[10px] text-slate-400">
+              <span className="mt-1 block text-[10px] text-muted-foreground">
                 Email address is managed by your sign-in account.
               </span>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Contact Phone</label>
+              <label className="block text-xs font-bold text-muted-foreground mb-1">
+                Contact Phone
+              </label>
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs outline-none focus:border-brand-700"
+                className="w-full rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs text-foreground outline-none focus:border-primary"
               />
             </div>
 
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="rounded-xl bg-brand-900 px-5 py-2 text-xs font-bold text-white hover:bg-brand-950"
+                className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90"
               >
                 Save Details
               </button>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted"
               >
                 Cancel
               </button>

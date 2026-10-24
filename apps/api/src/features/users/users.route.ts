@@ -1,5 +1,6 @@
-import { db, orders, users } from "@growmate/db";
-import { desc, eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { customerNotes, db, orders, storeCredits, users } from "@growmate/db";
+import { and, desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { requireAuth } from "../../infra/middleware/auth";
 import { requirePermission } from "../../infra/middleware/require-permission";
@@ -30,43 +31,41 @@ function formatProfile(u: any, userOrders: any[] = []) {
   };
 }
 
-// In-memory customer notes and store credits
-const customerNotesStore = new Map<
-  string,
-  Array<{
-    id: string;
-    customer_user_id: string;
-    author_id: string;
-    content: string;
-    created_at: string;
-  }>
->();
-const customerCreditsStore = new Map<
-  string,
-  Array<{
-    id: string;
-    customer_user_id: string;
-    amount: number;
-    reason: string;
-    created_by: string;
-    created_at: string;
-  }>
->();
-
-// GET /api/users/me (Customer's own profile)
+// GET /api/users/me (Customer self profile)
 usersRouter.get("/me", requireAuth, async (c) => {
   const authUser = c.get("user") as any;
   const [user] = await db.select().from(users).where(eq(users.id, authUser.id));
+
   if (!user) {
-    return c.json({ success: false, error: "User not found" }, 404);
+    return c.json({ success: false, error: "User profile not found" }, 404);
   }
 
   const userOrders = await db
     .select()
     .from(orders)
-    .where(eq(orders.userId, user.id))
+    .where(eq(orders.userId, authUser.id))
     .orderBy(desc(orders.createdAt));
-  return c.json({ success: true, data: formatProfile(user, userOrders) });
+
+  return c.json({
+    success: true,
+    data: formatProfile(user, userOrders),
+  });
+});
+
+// GET /api/users/credits (Staff view all store credits for Ecommerce Customers list)
+usersRouter.get("/credits", requireAuth, requireRole("admin"), async (c) => {
+  const allCredits = await db.select().from(storeCredits).orderBy(desc(storeCredits.createdAt));
+  return c.json({
+    success: true,
+    data: allCredits.map((c) => ({
+      id: c.id,
+      customer_user_id: c.customerUserId,
+      amount: c.amount,
+      reason: c.reason,
+      created_by: c.createdBy,
+      created_at: c.createdAt ? new Date(c.createdAt).toISOString() : new Date().toISOString(),
+    })),
+  });
 });
 
 // GET /api/users (Staff view all customers)
@@ -113,6 +112,7 @@ usersRouter.get("/:id", requireAuth, async (c) => {
     .from(orders)
     .where(eq(orders.userId, id))
     .orderBy(desc(orders.createdAt));
+
   const formattedOrders = userOrders.map((o) => ({
     id: o.id,
     total_amount: o.totalAmount,
@@ -125,16 +125,46 @@ usersRouter.get("/:id", requireAuth, async (c) => {
   }));
 
   const profile = formatProfile(user, userOrders);
-  const notes = customerNotesStore.get(id) || [];
-  const credits = customerCreditsStore.get(id) || [];
+
+  // Persistent notes and credits from PostgreSQL
+  const notes = await db
+    .select()
+    .from(customerNotes)
+    .where(eq(customerNotes.customerUserId, id))
+    .orderBy(desc(customerNotes.createdAt));
+
+  const credits = await db
+    .select()
+    .from(storeCredits)
+    .where(eq(storeCredits.customerUserId, id))
+    .orderBy(desc(storeCredits.createdAt));
+
+  const formattedNotes = notes.map((n) => ({
+    id: n.id,
+    customer_user_id: n.customerUserId,
+    author_id: n.authorId,
+    content: n.content,
+    created_at: n.createdAt ? new Date(n.createdAt).toISOString() : new Date().toISOString(),
+  }));
+
+  const formattedCredits = credits.map((cr) => ({
+    id: cr.id,
+    customer_user_id: cr.customerUserId,
+    amount: cr.amount,
+    reason: cr.reason,
+    created_by: cr.createdBy,
+    created_at: cr.createdAt ? new Date(cr.createdAt).toISOString() : new Date().toISOString(),
+  }));
 
   return c.json({
     success: true,
     data: {
       ...profile,
       orders: formattedOrders,
-      customer_notes: notes,
-      store_credits: credits,
+      notes: formattedNotes,
+      customer_notes: formattedNotes,
+      credits: formattedCredits,
+      store_credits: formattedCredits,
     },
   });
 });
@@ -176,30 +206,49 @@ usersRouter.patch("/:id", requireAuth, async (c) => {
   return c.json({ success: true, data: formatProfile(updated) });
 });
 
-// POST /api/users/:id/notes (Staff only)
+// POST /api/users/:id/notes (Staff only - Real PostgreSQL persistence)
 usersRouter.post("/:id/notes", requireAuth, requireRole("admin"), async (c) => {
   const customerId = c.req.param("id");
   const authUser = c.get("user") as any;
   const { content } = await c.req.json();
 
-  if (!content) return c.json({ error: "Note content required" }, 400);
+  if (!content || !content.trim()) return c.json({ error: "Note content required" }, 400);
 
-  const note = {
-    id: `note-${Date.now()}`,
-    customer_user_id: customerId,
-    author_id: authUser.id,
-    content,
-    created_at: new Date().toISOString(),
+  const noteId = `note-${Date.now()}-${randomUUID().slice(0, 8)}`;
+  const [created] = await db
+    .insert(customerNotes)
+    .values({
+      id: noteId,
+      customerUserId: customerId,
+      authorId: authUser.id,
+      content: content.trim(),
+    })
+    .returning();
+
+  const formatted = {
+    id: created.id,
+    customer_user_id: created.customerUserId,
+    author_id: created.authorId,
+    content: created.content,
+    created_at: created.createdAt.toISOString(),
   };
 
-  const existing = customerNotesStore.get(customerId) || [];
-  existing.unshift(note);
-  customerNotesStore.set(customerId, existing);
-
-  return c.json({ success: true, data: note });
+  return c.json({ success: true, data: formatted });
 });
 
-// POST /api/users/:id/credits (Staff only)
+// DELETE /api/users/:id/notes/:noteId (Staff only - Fixes 404!)
+usersRouter.delete("/:id/notes/:noteId", requireAuth, requireRole("admin"), async (c) => {
+  const customerId = c.req.param("id");
+  const noteId = c.req.param("noteId");
+
+  await db
+    .delete(customerNotes)
+    .where(and(eq(customerNotes.id, noteId), eq(customerNotes.customerUserId, customerId)));
+
+  return c.json({ success: true, message: "Customer note deleted successfully" });
+});
+
+// POST /api/users/:id/credits (Staff only - Real PostgreSQL persistence)
 usersRouter.post("/:id/credits", requireAuth, requireRole("admin"), async (c) => {
   const customerId = c.req.param("id");
   const authUser = c.get("user") as any;
@@ -207,18 +256,26 @@ usersRouter.post("/:id/credits", requireAuth, requireRole("admin"), async (c) =>
 
   if (!amount || Number(amount) <= 0) return c.json({ error: "Valid amount required" }, 400);
 
-  const credit = {
-    id: `cred-${Date.now()}`,
-    customer_user_id: customerId,
-    amount: Number(amount),
-    reason: reason || "Store Courtesy Credit",
-    created_by: authUser.id,
-    created_at: new Date().toISOString(),
+  const creditId = `cred-${Date.now()}-${randomUUID().slice(0, 8)}`;
+  const [created] = await db
+    .insert(storeCredits)
+    .values({
+      id: creditId,
+      customerUserId: customerId,
+      amount: Number(amount),
+      reason: reason || "Store Courtesy Credit",
+      createdBy: authUser.id,
+    })
+    .returning();
+
+  const formatted = {
+    id: created.id,
+    customer_user_id: created.customerUserId,
+    amount: created.amount,
+    reason: created.reason,
+    created_by: created.createdBy,
+    created_at: created.createdAt.toISOString(),
   };
 
-  const existing = customerCreditsStore.get(customerId) || [];
-  existing.unshift(credit);
-  customerCreditsStore.set(customerId, existing);
-
-  return c.json({ success: true, data: credit });
+  return c.json({ success: true, data: formatted });
 });

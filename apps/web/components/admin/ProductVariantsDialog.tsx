@@ -44,16 +44,16 @@ export function ProductVariantsDialog({ product, onOpenChange }: Props) {
     setColors("");
     setLoading(true);
     productsApi
-      .get(product.id)
+      .getVariants(product.id)
       .then((res) => {
-        const variants = (res.data as any)?.variants || [];
+        const variants = res.data || [];
         setRows(
           variants.map((v: any) => ({
             id: v.id,
             name: v.name,
             sku: v.sku ?? "",
             price: v.price != null ? String(v.price) : "",
-            stock: String(v.stock ?? 0),
+            stock: String(v.stockQuantity ?? v.stock ?? 0),
           })),
         );
       })
@@ -99,16 +99,19 @@ export function ProductVariantsDialog({ product, onOpenChange }: Props) {
     try {
       const payload = rows.map((r, i) => ({
         ...(r.id ? { id: r.id } : {}),
-        product_id: product.id,
+        productId: product.id,
         name: r.name.trim(),
-        sku: r.sku.trim() || null,
+        sku:
+          r.sku.trim() ||
+          `${product.id.slice(0, 6)}-${r.name
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")}`,
         price: r.price === "" ? null : Number(r.price),
         stock: Math.max(0, parseInt(r.stock) || 0),
-        position: i,
       }));
-      const total = payload.reduce((s, p) => s + p.stock, 0);
-      await productsApi.update(product.id, { variants: payload, stock: total });
-      toast.success("Options saved");
+      await productsApi.updateVariants(product.id, payload);
+      toast.success("Product variants saved successfully");
       qc.invalidateQueries({ queryKey: ["admin-products"] });
       qc.invalidateQueries({ queryKey: ["product-variants"] });
       onOpenChange(false);

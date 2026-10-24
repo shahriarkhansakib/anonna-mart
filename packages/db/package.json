@@ -11,11 +11,17 @@
     "push": "drizzle-kit push --config=drizzle.config.ts",
     "migrate": "drizzle-kit migrate --config=drizzle.config.ts",
     "studio": "drizzle-kit studio --config=drizzle.config.ts --port=5559",
-    "seed": "tsx src/seed.ts",
+    "reset": "tsx src/reset.ts",
+    "seed": "tsx src/seeds/index.ts",
+    "seed:admin": "tsx src/seeds/admin/seed-admin.ts",
+    "seed:catalog": "tsx src/seeds/catalog/seed-catalog.ts",
+    "seed:cloudinary": "tsx src/seeds/upload-to-cloudinary.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
+    "better-auth": "^1.7.11",
+    "cloudinary": "^2.5.1",
     "drizzle-orm": "^0.39.0",
     "postgres": "^3.4.4",
     "uuid": "^11.0.3"

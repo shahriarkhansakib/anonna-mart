@@ -27,6 +27,7 @@ import { couponsApi } from "@/lib/api/coupons";
 import { type DeliveryZoneItem, deliveryZonesApi } from "@/lib/api/delivery-zones";
 import { ordersApi } from "@/lib/api/orders";
 import { useSession } from "@/lib/auth-client";
+import { CLOUDINARY_FALLBACK } from "@/lib/constants";
 import { formatTaka } from "./types";
 
 const inputClass =
@@ -511,7 +512,7 @@ export function CheckoutPage() {
                   <li key={item.id} className="flex gap-3 py-3">
                     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100 border">
                       <Image
-                        src={item.image || "/images/homedecor.jpeg"}
+                        src={item.image || CLOUDINARY_FALLBACK.defaultProduct}
                         alt={item.name}
                         fill
                         className="object-cover"

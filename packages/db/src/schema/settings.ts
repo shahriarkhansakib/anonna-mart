@@ -52,6 +52,18 @@ export const adminSettings = pgTable("admin_settings", {
       googleTagManager?: { containerId?: string; enabled?: boolean };
     }>()
     .default({}),
+  platformSettings: jsonb("platform_settings")
+    .$type<{
+      maintenanceMode?: boolean;
+      maintenanceMessage?: string;
+      enableRegistration?: boolean;
+      enableSocialFeed?: boolean;
+      enableAppointments?: boolean;
+      enableShop?: boolean;
+      maxPetsPerUser?: number;
+      enableReviews?: boolean;
+    }>()
+    .default({}),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .defaultNow()
     .notNull()

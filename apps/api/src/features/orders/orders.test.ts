@@ -73,4 +73,24 @@ describe("Orders & Storefront Checkout Engine API", () => {
 
     expect(res.status).toBe(401);
   });
+
+  it("POST /api/orders/:id/courier/steadfast without admin auth should return 401", async () => {
+    const res = await app.request("/api/orders/order-1234/courier/steadfast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ recipient_name: "Customer" }),
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("GET /api/orders/:id/history without auth should return 401", async () => {
+    const res = await app.request("/api/orders/order-1234/history");
+    expect(res.status).toBe(401);
+  });
+
+  it("GET /api/orders/:id/courier/tracking without auth should return 401", async () => {
+    const res = await app.request("/api/orders/order-1234/courier/tracking");
+    expect(res.status).toBe(401);
+  });
 });

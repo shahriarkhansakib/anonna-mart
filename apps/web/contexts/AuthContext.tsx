@@ -151,7 +151,7 @@ async function signInWithGoogleAction() {
   try {
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/admin",
+      callbackURL: "/account",
     });
     return { error: null };
   } catch (err: any) {
@@ -174,7 +174,7 @@ async function signOutAction() {
     if (typeof window !== "undefined") {
       const path = window.location.pathname;
       if (path.startsWith("/admin") || path.startsWith("/account")) {
-        window.location.href = "/sign-in";
+        window.location.href = "/";
       }
     }
   } catch (err) {

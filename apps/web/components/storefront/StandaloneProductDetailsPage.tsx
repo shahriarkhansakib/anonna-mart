@@ -27,6 +27,7 @@ import { ThemeToggle } from "@/components/common/ThemeToggle";
 import { useCart } from "@/contexts/CartContext";
 import { useWishlist } from "@/contexts/WishlistContext";
 import { type ProductItem, productsApi } from "@/lib/api/products";
+import { CLOUDINARY_FALLBACK } from "@/lib/constants";
 import { ProductThumbnail } from "./ProductCard";
 import { CartDrawerPanel } from "./StorefrontPanels";
 import { formatTaka, getDiscountPercent, hasValidDiscount, type StorefrontProduct } from "./types";
@@ -70,7 +71,7 @@ export function StandaloneProductDetailsPage() {
     const primaryImage =
       raw.images && raw.images.length > 0
         ? raw.images[0]
-        : raw.imageUrl || raw.image_url || "/images/homedecor.jpeg";
+        : raw.imageUrl || raw.image_url || CLOUDINARY_FALLBACK.defaultProduct;
     return {
       id: raw.id,
       name: raw.name,
@@ -98,7 +99,7 @@ export function StandaloneProductDetailsPage() {
       const primaryImage =
         p.images && p.images.length > 0
           ? p.images[0]
-          : p.imageUrl || p.image_url || "/images/homedecor.jpeg";
+          : p.imageUrl || p.image_url || CLOUDINARY_FALLBACK.defaultProduct;
       return {
         id: p.id,
         name: p.name,
@@ -176,7 +177,7 @@ export function StandaloneProductDetailsPage() {
   const galleryImages =
     product.images && product.images.length > 0
       ? product.images
-      : [product.image || "/images/homedecor.jpeg"];
+      : [product.image || CLOUDINARY_FALLBACK.defaultProduct];
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-200">

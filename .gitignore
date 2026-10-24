@@ -39,10 +39,12 @@ packages/*/.env*.local
 !packages/*/.env.example
 
 # =============================================================================
-# Seed Scripts & Local Fixtures (Safe from public commits)
+# Seed Scripts & Local Fixtures (100% Git-Ignored)
 # =============================================================================
 packages/db/src/seed.ts
 packages/db/src/seed-permissions.ts
+packages/db/src/seeds/
+packages/db/seeds/
 apps/api/scripts/
 **/seed*.ts
 

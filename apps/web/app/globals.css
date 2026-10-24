@@ -245,9 +245,8 @@
   html[data-admin="true"],
   html[data-theme="admin"],
   html:has(.admin-shell),
-  body.admin-portal,
-  body:has(.admin-shell),
-  .admin-shell {
+  html:not(.dark) body.admin-portal,
+  html:not(.dark) .admin-shell {
     --background: 240 9% 97%;
     --foreground: 240 6% 10%;
 
@@ -293,8 +292,8 @@
   html.dark[data-admin="true"],
   html.dark[data-theme="admin"],
   html.dark:has(.admin-shell),
-  body.dark.admin-portal,
-  body.dark:has(.admin-shell),
+  html.dark body.admin-portal,
+  html.dark .admin-shell,
   .dark .admin-shell {
     --background: 240 6% 4%;
     --foreground: 45 30% 95%;
@@ -340,6 +339,17 @@
 @layer base {
   * {
     @apply border-border;
+  }
+
+  /* Remove browser-default bold focus outlines on mouse clicks while keeping keyboard accessibility */
+  :focus:not(:focus-visible) {
+    outline: none !important;
+  }
+
+  a:focus:not(:focus-visible),
+  button:focus:not(:focus-visible),
+  [role="button"]:focus:not(:focus-visible) {
+    outline: none !important;
   }
 
   body {

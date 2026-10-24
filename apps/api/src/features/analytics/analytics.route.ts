@@ -1,5 +1,5 @@
-import { db, orderItems, orders, products, users } from "@growmate/db";
-import { desc, eq } from "drizzle-orm";
+import { categories, db, orderItems, orders, products, users } from "@growmate/db";
+import { desc } from "drizzle-orm";
 import { Hono } from "hono";
 import { requireAuth } from "../../infra/middleware/auth";
 import { requirePermission } from "../../infra/middleware/require-permission";
@@ -12,6 +12,7 @@ function subDays(date: Date, days: number): Date {
 
 function format(date: Date, fmt: string): string {
   if (fmt === "yyyy-MM-dd") return date.toISOString().slice(0, 10);
+  if (fmt === "EEE") return date.toLocaleDateString("en-US", { weekday: "short" });
   if (fmt === "d MMM") return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
   return date.toISOString().slice(0, 10);
 }
@@ -21,13 +22,23 @@ export const analyticsRouter = new Hono();
 // All analytics endpoints require auth and analytics:view_overview permission
 analyticsRouter.use("/*", requireAuth, requirePermission("analytics:view_overview"));
 
-// Helper to compute analytics from real database rows
-
+// Helper to compute analytics dynamically from real database rows
 async function computeRealAnalytics() {
   const allOrders = await db.select().from(orders).orderBy(desc(orders.createdAt));
   const allProducts = await db.select().from(products);
+  const allCategories = await db.select().from(categories);
   const allUsers = await db.select().from(users);
   const allItems = await db.select().from(orderItems);
+
+  const categoryMap = new Map<string, string>();
+  for (const cat of allCategories) {
+    categoryMap.set(cat.id, cat.name);
+  }
+
+  const productMap = new Map<string, any>();
+  for (const prod of allProducts) {
+    productMap.set(prod.id, prod);
+  }
 
   const activeOrders = allOrders.filter(
     (o) => !o.trashedAt && o.status !== "cancelled" && o.status !== "rejected",
@@ -97,7 +108,7 @@ async function computeRealAnalytics() {
     color: statusColors[name] || "hsl(var(--muted))",
   }));
 
-  // Top products from order items
+  // Top products from order items with real categories
   const productSalesMap = new Map<string, { quantity: number; revenue: number; name: string }>();
   for (const item of allItems) {
     const existing = productSalesMap.get(item.productId) || {
@@ -111,14 +122,19 @@ async function computeRealAnalytics() {
   }
 
   const topProducts = Array.from(productSalesMap.entries())
-    .map(([id, val]) => ({
-      id,
-      name: val.name,
-      totalSold: val.quantity,
-      revenue: val.revenue,
-      category: "Pet Care",
-      image_url: null,
-    }))
+    .map(([id, val]) => {
+      const prod = productMap.get(id);
+      const catName = prod?.categoryId ? categoryMap.get(prod.categoryId) || "General" : "General";
+      const img = Array.isArray(prod?.images) && prod.images.length > 0 ? prod.images[0] : null;
+      return {
+        id,
+        name: val.name,
+        totalSold: val.quantity,
+        revenue: val.revenue,
+        category: catName,
+        image_url: img,
+      };
+    })
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 5);
 
@@ -131,6 +147,51 @@ async function computeRealAnalytics() {
     created_at: new Date(o.createdAt).toISOString(),
   }));
 
+  // Dynamic Growth calculation: compare current 30 days against preceding 30 days
+  const thirtyDaysAgo = subDays(now, 30);
+  const sixtyDaysAgo = subDays(now, 60);
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const currentPeriodOrders = activeOrders.filter((o) => new Date(o.createdAt) >= thirtyDaysAgo);
+  const priorPeriodOrders = activeOrders.filter(
+    (o) => new Date(o.createdAt) >= sixtyDaysAgo && new Date(o.createdAt) < thirtyDaysAgo,
+  );
+
+  const currentRevenue = currentPeriodOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+  const priorRevenue = priorPeriodOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+  const revenueGrowth =
+    priorRevenue > 0
+      ? Math.round(((currentRevenue - priorRevenue) / priorRevenue) * 100 * 10) / 10
+      : currentRevenue > 0
+        ? 100
+        : 0;
+
+  const orderGrowth =
+    priorPeriodOrders.length > 0
+      ? Math.round(
+          ((currentPeriodOrders.length - priorPeriodOrders.length) / priorPeriodOrders.length) *
+            100 *
+            10,
+        ) / 10
+      : currentPeriodOrders.length > 0
+        ? 100
+        : 0;
+
+  const currentUsers = allUsers.filter((u) => new Date(u.createdAt) >= thirtyDaysAgo);
+  const priorUsers = allUsers.filter(
+    (u) => new Date(u.createdAt) >= sixtyDaysAgo && new Date(u.createdAt) < thirtyDaysAgo,
+  );
+
+  const userGrowth =
+    priorUsers.length > 0
+      ? Math.round(((currentUsers.length - priorUsers.length) / priorUsers.length) * 100 * 10) / 10
+      : currentUsers.length > 0
+        ? 100
+        : 0;
+
+  const newUsersThisMonth = allUsers.filter((u) => new Date(u.createdAt) >= startOfMonth).length;
+
   return {
     totalRevenue: Math.round(totalRevenue * 100) / 100,
     activeRevenue: Math.round(totalRevenue * 100) / 100,
@@ -142,11 +203,11 @@ async function computeRealAnalytics() {
     totalProducts: allProducts.length,
     lowStockCount: lowStockProducts.length,
     totalUsers: allUsers.length,
-    newUsersThisMonth: allUsers.length,
+    newUsersThisMonth,
     averageOrderValue: activeOrders.length > 0 ? Math.round(totalRevenue / activeOrders.length) : 0,
-    revenueGrowth: 12.5,
-    orderGrowth: 8.3,
-    userGrowth: 15.0,
+    revenueGrowth,
+    orderGrowth,
+    userGrowth,
     dailyTrends,
     orderStatusDistribution,
     topProducts,

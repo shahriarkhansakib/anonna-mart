@@ -24,6 +24,7 @@ export interface ProductFormData {
   price: string;
   compare_price: string;
   category: string;
+  category_id?: string;
   product_type: string;
   image_url: string;
   images: string[];
@@ -175,18 +176,33 @@ export function ProductFormFields({ formData, onChange }: ProductFormFieldsProps
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Category *
             </Label>
-            <Input
-              list="product-category-options"
-              value={formData.category}
-              onChange={(e) => update("category", e.target.value)}
-              placeholder="e.g., Clothing"
-              className="mt-1.5 h-11 rounded-xl"
-            />
-            <datalist id="product-category-options">
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.name} />
-              ))}
-            </datalist>
+            <Select
+              value={
+                formData.category_id ||
+                categories.find((c) => c.name.toLowerCase() === formData.category?.toLowerCase())
+                  ?.id ||
+                ""
+              }
+              onValueChange={(val) => {
+                const selected = categories.find((c) => c.id === val);
+                onChange({
+                  ...formData,
+                  category_id: val,
+                  category: selected?.name || formData.category,
+                });
+              }}
+            >
+              <SelectTrigger className="mt-1.5 h-11 rounded-xl">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
