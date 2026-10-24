@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { ArrowRight, Minus, Plus, ShoppingCart, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { useCart } from "@/contexts/CartContext";
@@ -23,7 +23,7 @@ export function CartDrawer() {
           {/* Header */}
           <div className="px-6 py-4 border-b flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-primary" />
+              <ShoppingCart className="w-5 h-5 text-primary" />
               <h2 className="text-lg font-bold">Shopping Cart ({count})</h2>
             </div>
             <button
@@ -39,7 +39,7 @@ export function CartDrawer() {
             {items.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                  <ShoppingBag className="w-8 h-8" />
+                  <ShoppingCart className="w-8 h-8" />
                 </div>
                 <h3 className="font-semibold text-base">Your cart is empty</h3>
                 <p className="text-xs text-muted-foreground max-w-xs">

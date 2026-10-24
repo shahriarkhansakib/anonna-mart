@@ -13,7 +13,15 @@ This directory contains specialized instructions, procedural skills, architectur
 │   ├── database-operations.md          # Database setup, reset, push, seeding, and studio
 │   ├── api-development.md              # Building Hono endpoints, controllers, and schemas
 │   ├── testing-and-qa.md               # Unit tests, integration tests, and stress tests
-│   └── admin-pbac-permissions.md       # PBAC permission registration and role assignment
+│   ├── admin-pbac-permissions.md       # PBAC permission registration and role assignment
+│   └── anonna-ui-polish/               # ★ UI/UX design system and polish skill
+│       ├── SKILL.md                    # Skill activation conditions and standard workflow
+│       └── references/
+│           ├── design-decisions.md     # Verified design choices and pending proposals
+│           ├── colors-and-typography.md # Color tokens, type scale, contrast rules
+│           ├── responsive-design.md    # Breakpoints, grids, layout patterns
+│           ├── components-and-states.md # Component anatomy and interaction states
+│           └── avoid-list.md           # Prohibited patterns and protected systems
 ├── rules/                              # Strict, non-negotiable coding guardrails
 │   ├── architecture-and-code-style.md  # Monorepo separation and coding conventions
 │   ├── database-conventions.md         # Schema constraints, indexing, and relations rules
@@ -32,5 +40,5 @@ This directory contains specialized instructions, procedural skills, architectur
 
 1. **Before writing database code:** Review `rules/database-conventions.md` and `skills/database-operations.md`.
 2. **Before adding or modifying API routes:** Review `skills/api-development.md` and `skills/admin-pbac-permissions.md`.
-3. **Before modifying UI or themes:** Review `rules/ui-and-branding.md` to ensure Anonna Mart and GrowMate branding rules are respected.
+3. **Before modifying UI or themes:** Review `rules/ui-and-branding.md` **and** activate the `anonna-ui-polish` skill for detailed design system guidance.
 4. **When understanding architectural intent:** Read the corresponding ADR in `decisions/`.

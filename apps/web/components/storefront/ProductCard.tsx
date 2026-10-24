@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { Heart, ShoppingBag, Star } from "lucide-react";
+import { Check, Heart, ShoppingCart, Star } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { formatTaka, getDiscountPercent, hasValidDiscount, type StorefrontProduct } from "./types";
@@ -64,6 +64,13 @@ export function ProductCard({
   const hasDiscount = hasValidDiscount(product);
   const stock = product.stock ?? product.stockQuantity ?? 10;
   const soldOut = stock < 1;
+  const [added, setAdded] = useState(false);
+
+  const handleAdd = () => {
+    onAddToCart(product);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1600);
+  };
 
   return (
     <article className="group flex h-full w-full min-w-0 flex-col justify-between overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:border-emerald-600/50 hover:shadow-lg dark:hover:border-emerald-500/50">
@@ -81,11 +88,17 @@ export function ProductCard({
           />
         </button>
 
-        {hasDiscount && (
-          <span className="absolute left-2.5 top-2.5 rounded-md bg-gold-400 px-2 py-0.5 text-xs font-bold text-brand-950 shadow-sm">
-            {getDiscountPercent(product)}% off
-          </span>
-        )}
+        <div className="absolute left-2.5 top-2.5 z-10 flex flex-col items-start gap-1 pointer-events-none">
+          {hasDiscount ? (
+            <span className="rounded-md bg-[#064e3b] px-2 py-0.5 text-xs font-semibold text-white shadow-xs">
+              {getDiscountPercent(product)}% OFF
+            </span>
+          ) : product.featured ? (
+            <span className="rounded-md bg-muted/95 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground shadow-xs">
+              Featured
+            </span>
+          ) : null}
+        </div>
 
         <button
           type="button"
@@ -146,14 +159,33 @@ export function ProductCard({
             )}
           </div>
 
+          {stock > 0 && stock <= 5 && (
+            <p className="mt-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+              Only {stock} left in stock — order soon
+            </p>
+          )}
+
           <button
             type="button"
-            onClick={() => onAddToCart(product)}
+            onClick={handleAdd}
             disabled={soldOut}
-            className="mt-3 inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground transition-all hover:opacity-90 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground sm:text-sm"
+            className={`mt-3 inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-xl px-3 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground sm:text-sm ${
+              added
+                ? "bg-emerald-800 text-white shadow-xs"
+                : "bg-primary text-primary-foreground hover:opacity-90 hover:shadow-md"
+            }`}
           >
-            <ShoppingBag className="h-4 w-4 shrink-0" aria-hidden="true" />
-            {soldOut ? "Out of Stock" : "Add to cart"}
+            {added ? (
+              <>
+                <Check className="h-4 w-4 shrink-0 text-emerald-200" aria-hidden="true" />
+                <span>Added to Cart</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>{soldOut ? "Out of Stock" : "Add to cart"}</span>
+              </>
+            )}
           </button>
         </div>
       </div>
