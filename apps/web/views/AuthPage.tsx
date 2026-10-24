@@ -3,7 +3,9 @@ import { ArrowLeft, Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-const hero = "/auth-hero.jpg";
+import { CLOUDINARY_FALLBACK } from "@/lib/constants";
+
+const hero = CLOUDINARY_FALLBACK.authHero || "/auth-hero.jpg";
 
 import { GrowMateMascot } from "@/components/GrowMateMascot";
 import { Button } from "@/components/ui/button";

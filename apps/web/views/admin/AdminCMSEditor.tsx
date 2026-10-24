@@ -35,7 +35,6 @@ import {
   useUpdateArticle,
 } from "@/hooks/useCMS";
 import { useNavigate, useParams } from "@/lib/router-compat";
-import { getFileUrl } from "@/lib/storageUrl";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required").max(200),

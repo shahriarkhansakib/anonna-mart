@@ -1,18 +1,14 @@
-import { supabase } from "@/integrations/supabase/client";
-
 export async function invokeFn<T = any>(
   name: string,
   options: { body?: unknown } = {},
 ): Promise<{ data: T | null; error: Error | null }> {
   try {
-    const { data: sess } = await supabase.auth.getSession();
-    const token = sess.session?.access_token;
     const res = await fetch(`/api/public/fn/${name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
+      credentials: "include",
       body: JSON.stringify(options.body ?? {}),
     });
     const text = await res.text();

@@ -25,6 +25,9 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { supportApi } from "@/lib/api/support";
+import { CLOUDINARY_FALLBACK } from "@/lib/constants";
+
+const mascotUrl = CLOUDINARY_FALLBACK.mascot || "/growmate-mascot.png";
 
 interface ChatProduct {
   id: string;
@@ -218,7 +221,7 @@ export function AIChatWidget() {
           {/* Mascot Image with Interactive Bobbing */}
           <div className="relative w-full h-full rounded-full overflow-hidden bg-emerald-950 flex items-center justify-center">
             <img
-              src="/growmate-mascot.png"
+              src={mascotUrl}
               alt="GrowMate Mascot"
               className="w-12 h-12 sm:w-14 sm:h-14 object-contain group-hover:scale-110 transition-transform duration-300"
             />
@@ -266,7 +269,7 @@ export function AIChatWidget() {
             <div className="text-center my-3">
               <div className="relative w-20 h-20 mx-auto mb-3">
                 <img
-                  src="/growmate-mascot.png"
+                  src={mascotUrl}
                   alt="GrowMate AI"
                   className="w-full h-full object-contain animate-bounce"
                   style={{ animationDuration: "3s" }}
@@ -318,11 +321,7 @@ export function AIChatWidget() {
             <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 p-4 text-white flex items-center justify-between shadow-md">
               <div className="flex items-center gap-3">
                 <div className="relative w-10 h-10 rounded-full bg-black/20 p-1 flex items-center justify-center">
-                  <img
-                    src="/growmate-mascot.png"
-                    alt="GrowMate AI"
-                    className="w-full h-full object-contain"
-                  />
+                  <img src={mascotUrl} alt="GrowMate AI" className="w-full h-full object-contain" />
                   <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-300 border-2 border-emerald-700 rounded-full" />
                 </div>
                 <div>
@@ -353,11 +352,7 @@ export function AIChatWidget() {
                 {/* Welcome Greeting from Mascot */}
                 <div className="flex items-start gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/60 p-1 flex-shrink-0 flex items-center justify-center">
-                    <img
-                      src="/growmate-mascot.png"
-                      alt="GrowMate"
-                      className="w-full h-full object-contain"
-                    />
+                    <img src={mascotUrl} alt="GrowMate" className="w-full h-full object-contain" />
                   </div>
                   <div className="bg-muted/70 rounded-2xl rounded-tl-sm p-3.5 text-xs text-foreground leading-relaxed max-w-[85%] border border-border/50">
                     <p className="font-semibold text-emerald-600 dark:text-emerald-400 mb-1">
@@ -384,7 +379,7 @@ export function AIChatWidget() {
                         {!isUser && (
                           <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950/60 p-1 flex-shrink-0 flex items-center justify-center">
                             <img
-                              src="/growmate-mascot.png"
+                              src={mascotUrl}
                               alt="AI"
                               className="w-full h-full object-contain"
                             />
@@ -457,7 +452,7 @@ export function AIChatWidget() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground italic">
                     <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950 p-1 animate-spin">
                       <img
-                        src="/growmate-mascot.png"
+                        src={mascotUrl}
                         alt="Thinking"
                         className="w-full h-full object-contain"
                       />

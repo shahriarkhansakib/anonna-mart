@@ -5,6 +5,7 @@ import { analyticsApi } from "@/lib/api/analytics";
 import { ordersApi } from "@/lib/api/orders";
 import { productsApi } from "@/lib/api/products";
 import { usersApi } from "@/lib/api/users";
+import { CLOUDINARY_FALLBACK } from "@/lib/constants";
 import type { AdminOrder } from "@/types/database";
 
 export type AppRole = "admin" | "super_admin" | "user";
@@ -85,7 +86,9 @@ export const useAdminProducts = () => {
           category: p.category || p.categoryName || "General",
           product_type: p.product_type || p.productType || "Physical",
           image_url:
-            p.image_url || (Array.isArray(p.images) && p.images[0]) || "/growmate-mascot.png",
+            p.image_url ||
+            (Array.isArray(p.images) && p.images[0]) ||
+            CLOUDINARY_FALLBACK.defaultProduct,
           images: p.images || [],
           stock: p.stock !== undefined ? Number(p.stock) : Number(p.stockQuantity || 0),
           badge: p.badge || null,

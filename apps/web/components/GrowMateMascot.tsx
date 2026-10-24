@@ -2,6 +2,7 @@
 
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
+import { CLOUDINARY_FALLBACK } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const LIDS = [
@@ -76,7 +77,7 @@ export function GrowMateMascot({ className }: { className?: string }) {
         className="relative w-full h-full"
       >
         <img
-          src="/growmate-mascot.png"
+          src={CLOUDINARY_FALLBACK.mascot || "/growmate-mascot.png"}
           alt="GrowMate Mascot"
           className="w-full h-full object-contain drop-shadow-md"
           draggable={false}

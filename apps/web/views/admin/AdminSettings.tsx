@@ -50,7 +50,6 @@ import { useAdminRealtimeDashboard } from "@/hooks/useAdminRealtimeDashboard";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { settingsApi } from "@/lib/api/settings";
 import { useNavigate } from "@/lib/router-compat";
-import { getFileUrl } from "@/lib/storageUrl";
 
 interface StoreSettings {
   name: string;

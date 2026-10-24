@@ -3,7 +3,6 @@
  * Tracks Web Vitals and basic usage metrics without collecting PII.
  */
 
-import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
 
 // Web Vitals metrics types
