@@ -1,4 +1,6 @@
+import { relations } from "drizzle-orm";
 import { boolean, doublePrecision, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { users } from "./auth";
 import { orders } from "./orders";
 
 export const orderReturns = pgTable("order_returns", {
@@ -22,6 +24,17 @@ export const orderReturns = pgTable("order_returns", {
     .notNull()
     .$onUpdate(() => new Date()),
 });
+
+export const orderReturnsRelations = relations(orderReturns, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderReturns.orderId],
+    references: [orders.id],
+  }),
+  customerUser: one(users, {
+    fields: [orderReturns.customerUserId],
+    references: [users.id],
+  }),
+}));
 
 export type OrderReturn = typeof orderReturns.$inferSelect;
 export type NewOrderReturn = typeof orderReturns.$inferInsert;

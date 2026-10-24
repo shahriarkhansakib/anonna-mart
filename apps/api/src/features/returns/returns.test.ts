@@ -25,11 +25,32 @@ describe("Returns & Reverse Logistics API Suite", () => {
     expect(res.status).toBe(401);
   });
 
+  it("GET /api/returns/:id without authentication should return 401 Unauthorized", async () => {
+    const res = await app.request("/api/returns/ret-1234");
+    expect(res.status).toBe(401);
+  });
+
   it("PATCH /api/returns/:id without authentication should return 401 Unauthorized", async () => {
     const res = await app.request("/api/returns/ret-1234", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "approved" }),
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("POST /api/returns/:id/restock without authentication should return 401 Unauthorized", async () => {
+    const res = await app.request("/api/returns/ret-1234/restock", {
+      method: "POST",
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("DELETE /api/returns/:id without authentication should return 401 Unauthorized", async () => {
+    const res = await app.request("/api/returns/ret-1234", {
+      method: "DELETE",
     });
 
     expect(res.status).toBe(401);

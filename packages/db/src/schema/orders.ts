@@ -12,6 +12,7 @@ import {
 import { users } from "./auth";
 import { deliveryZones } from "./delivery-zones";
 import { products } from "./products";
+import { orderReturns } from "./returns";
 
 export const orderStatusEnum = pgEnum("order_status", [
   "pending",
@@ -116,6 +117,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   }),
   items: many(orderItems),
   statusHistory: many(orderStatusHistory),
+  returns: many(orderReturns),
 }));
 
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({

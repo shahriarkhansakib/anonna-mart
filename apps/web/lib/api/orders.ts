@@ -90,13 +90,15 @@ export const ordersApi = {
     time?: string;
     page?: number;
     pageSize?: number;
+    limit?: number;
   }) => {
     const sp = new URLSearchParams();
     if (params?.status && params.status !== "all") sp.set("status", params.status);
     if (params?.search) sp.set("search", params.search);
     if (params?.time && params.time !== "all") sp.set("time", params.time);
     if (params?.page) sp.set("page", String(params.page));
-    if (params?.pageSize) sp.set("pageSize", String(params.pageSize));
+    const effectiveSize = params?.pageSize ?? params?.limit;
+    if (effectiveSize) sp.set("pageSize", String(effectiveSize));
     const qs = sp.toString() ? `?${sp.toString()}` : "";
     return apiFetch<OrdersListResponse>(`/api/orders${qs}`);
   },
