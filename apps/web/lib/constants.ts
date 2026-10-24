@@ -6,7 +6,7 @@ export const CLOUDINARY_FALLBACK = {
   footerLeaves:
     "https://res.cloudinary.com/dgmcwmwof/image/upload/v1792836750/anonna-mart/catalog/footer-leaves.jpg",
   specialOfferBanner:
-    "https://res.cloudinary.com/dgmcwmwof/image/upload/v1792836766/anonna-mart/catalog/WhatsApp_Image_2026-10-08_at_3_36_13_PM__1_.jpg",
+    "https://res.cloudinary.com/dgmcwmwof/image/upload/v1792848325/anonna-mart/catalog/special-offer-banner.jpg",
   authHero:
     "https://res.cloudinary.com/dgmcwmwof/image/upload/v1792846437/anonna-mart/catalog/auth-hero.jpg",
   mascot:

@@ -27,7 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supportApi } from "@/lib/api/support";
 import { CLOUDINARY_FALLBACK } from "@/lib/constants";
 
-const mascotUrl = CLOUDINARY_FALLBACK.mascot || "/growmate-mascot.png";
+const mascotUrl = CLOUDINARY_FALLBACK.mascot;
 
 interface ChatProduct {
   id: string;

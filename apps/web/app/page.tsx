@@ -553,7 +553,7 @@ export default function StorefrontHomePage() {
           {/* Background image covering entire hero */}
           <div className="absolute inset-0 z-0">
             <Image
-              src={CLOUDINARY_FALLBACK.heroLifestyle || "/images/hero-lifestyle.jpg"}
+              src={CLOUDINARY_FALLBACK.heroLifestyle}
               alt="Anonna Mart curated lifestyle collection, organic honey, turmeric, sarees, and home textiles"
               fill
               priority

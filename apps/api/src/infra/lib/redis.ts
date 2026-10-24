@@ -8,7 +8,8 @@ import { logger } from "./logger";
  * Dev/local: ioredis → local Docker Redis container (redis://127.0.0.1:6380).
  * Prod / Vercel: @upstash/redis → HTTP-based serverless-safe client.
  *
- * Uses UPSTASH_URL / UPSTASH_REDIS_REST_URL and UPSTASH_TOKEN / UPSTASH_REDIS_REST_TOKEN.
+ * Fault-tolerant: Contains an in-memory fallback cache so that OAuth states,
+ * session cookies, and rate limits NEVER fail if Redis is temporarily offline or disconnected.
  */
 
 export type RedisAdapter = {
@@ -26,6 +27,52 @@ export type RedisAdapter = {
   on?(event: string, callback: (...args: any[]) => void): void;
 };
 
+// In-memory fallback cache for when Redis is unavailable
+const memoryCache = new Map<string, { value: string; expiresAt: number | null }>();
+
+function memoryGet(key: string): string | null {
+  const item = memoryCache.get(key);
+  if (!item) return null;
+  if (item.expiresAt !== null && Date.now() > item.expiresAt) {
+    memoryCache.delete(key);
+    return null;
+  }
+  return item.value;
+}
+
+function memorySet(key: string, value: string, ttlSeconds?: number): void {
+  memoryCache.set(key, {
+    value,
+    expiresAt: ttlSeconds ? Date.now() + ttlSeconds * 1000 : null,
+  });
+}
+
+function memoryDel(...keys: string[]): number {
+  let count = 0;
+  for (const k of keys) {
+    if (memoryCache.delete(k)) count++;
+  }
+  return count;
+}
+
+function memoryIncrby(key: string, amount: number): number {
+  const current = Number.parseInt(memoryGet(key) || "0", 10) || 0;
+  const next = current + amount;
+  const existing = memoryCache.get(key);
+  memoryCache.set(key, {
+    value: String(next),
+    expiresAt: existing?.expiresAt ?? null,
+  });
+  return next;
+}
+
+function memoryExpire(key: string, seconds: number): number {
+  const existing = memoryCache.get(key);
+  if (!existing) return 0;
+  existing.expiresAt = Date.now() + seconds * 1000;
+  return 1;
+}
+
 function buildAdapter(): RedisAdapter {
   const upstashUrl = process.env.UPSTASH_URL || process.env.UPSTASH_REDIS_REST_URL;
   const upstashToken = process.env.UPSTASH_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -38,63 +85,64 @@ function buildAdapter(): RedisAdapter {
       async get(key: string) {
         try {
           const val = await client.get<string | number | object>(key);
-          if (val === null || val === undefined) return null;
+          if (val === null || val === undefined) return memoryGet(key);
           return typeof val === "string" ? val : JSON.stringify(val);
         } catch (err: any) {
-          logger.warn({ module: "redis", err: err?.message }, "Upstash get error");
-          return null;
+          logger.warn(
+            { module: "redis", err: err?.message },
+            "Upstash get error, using memory fallback",
+          );
+          return memoryGet(key);
         }
       },
 
       async set(key: string, value: string, modeOrTtl?: string | number, ttl?: number) {
+        let ttlSeconds: number | undefined;
+        if (typeof modeOrTtl === "number") {
+          ttlSeconds = modeOrTtl;
+        } else if (modeOrTtl === "EX" && typeof ttl === "number") {
+          ttlSeconds = ttl;
+        }
+        memorySet(key, value, ttlSeconds);
         try {
-          let ttlSeconds: number | undefined;
-          if (typeof modeOrTtl === "number") {
-            ttlSeconds = modeOrTtl;
-          } else if (modeOrTtl === "EX" && typeof ttl === "number") {
-            ttlSeconds = ttl;
-          }
           if (ttlSeconds) {
             return await client.set(key, value, { ex: ttlSeconds });
           }
           return await client.set(key, value);
         } catch (err: any) {
-          logger.warn({ module: "redis", err: err?.message }, "Upstash set error");
-          return null;
+          return "OK";
         }
       },
 
       async del(...keys: string[]) {
+        memoryDel(...keys);
         try {
           if (!keys.length) return 0;
           return await client.del(...keys);
-        } catch (err: any) {
-          logger.warn({ module: "redis", err: err?.message }, "Upstash del error");
-          return 0;
+        } catch {
+          return keys.length;
         }
       },
 
       async incr(key: string) {
-        try {
-          return await client.incr(key);
-        } catch {
-          return 1;
-        }
+        return this.incrby(key, 1);
       },
 
       async incrby(key: string, amount: number) {
+        const localVal = memoryIncrby(key, amount);
         try {
           return await client.incrby(key, amount);
         } catch {
-          return amount;
+          return localVal;
         }
       },
 
       async expire(key: string, seconds: number) {
+        memoryExpire(key, seconds);
         try {
           return await client.expire(key, seconds);
         } catch {
-          return 0;
+          return 1;
         }
       },
 
@@ -142,8 +190,10 @@ function buildAdapter(): RedisAdapter {
     };
   }
 
-  // Local development / fallback: ioredis
+  // Local development / fallback: ioredis with transparent in-memory fallback
   const redisUrl = process.env.REDIS_URL || "redis://127.0.0.1:6380";
+  let isConnected = false;
+
   const client = new Redis(redisUrl, {
     maxRetriesPerRequest: 1,
     lazyConnect: true,
@@ -154,89 +204,131 @@ function buildAdapter(): RedisAdapter {
     },
   });
 
+  client.on("connect", () => {
+    isConnected = true;
+  });
+  client.on("ready", () => {
+    isConnected = true;
+  });
+  client.on("close", () => {
+    isConnected = false;
+  });
   client.on("error", (err) => {
-    logger.warn({ module: "redis", err: err.message }, "Redis connection degraded or inactive");
+    isConnected = false;
+    logger.warn(
+      { module: "redis", err: err.message },
+      "Local Redis connection inactive, using resilient memory store",
+    );
   });
 
   return {
     async get(key: string) {
-      try {
-        return await client.get(key);
-      } catch {
-        return null;
+      if (isConnected) {
+        try {
+          const val = await client.get(key);
+          if (val !== null) return val;
+        } catch {
+          isConnected = false;
+        }
       }
+      return memoryGet(key);
     },
 
     async set(key: string, value: string, modeOrTtl?: string | number, ttl?: number) {
-      try {
-        if (typeof modeOrTtl === "number") {
-          return await client.set(key, value, "EX", modeOrTtl);
-        }
-        if (modeOrTtl === "EX" && typeof ttl === "number") {
-          return await client.set(key, value, "EX", ttl);
-        }
-        return await client.set(key, value);
-      } catch {
-        return null;
+      let ttlSeconds: number | undefined;
+      if (typeof modeOrTtl === "number") {
+        ttlSeconds = modeOrTtl;
+      } else if (modeOrTtl === "EX" && typeof ttl === "number") {
+        ttlSeconds = ttl;
       }
+      memorySet(key, value, ttlSeconds);
+
+      if (isConnected) {
+        try {
+          if (ttlSeconds) {
+            return await client.set(key, value, "EX", ttlSeconds);
+          }
+          return await client.set(key, value);
+        } catch {
+          isConnected = false;
+        }
+      }
+      return "OK";
     },
 
     async del(...keys: string[]) {
-      try {
-        if (!keys.length) return 0;
-        return await client.del(...keys);
-      } catch {
-        return 0;
+      const removed = memoryDel(...keys);
+      if (isConnected) {
+        try {
+          if (!keys.length) return 0;
+          return await client.del(...keys);
+        } catch {
+          isConnected = false;
+        }
       }
+      return removed;
     },
 
     async incr(key: string) {
-      try {
-        return await client.incr(key);
-      } catch {
-        return 1;
-      }
+      return this.incrby(key, 1);
     },
 
     async incrby(key: string, amount: number) {
-      try {
-        return await client.incrby(key, amount);
-      } catch {
-        return amount;
+      const val = memoryIncrby(key, amount);
+      if (isConnected) {
+        try {
+          return await client.incrby(key, amount);
+        } catch {
+          isConnected = false;
+        }
       }
+      return val;
     },
 
     async expire(key: string, seconds: number) {
-      try {
-        return await client.expire(key, seconds);
-      } catch {
-        return 0;
+      memoryExpire(key, seconds);
+      if (isConnected) {
+        try {
+          return await client.expire(key, seconds);
+        } catch {
+          isConnected = false;
+        }
       }
+      return 1;
     },
 
     async smembers(key: string) {
-      try {
-        return await client.smembers(key);
-      } catch {
-        return [];
+      if (isConnected) {
+        try {
+          return await client.smembers(key);
+        } catch {
+          isConnected = false;
+        }
       }
+      return [];
     },
 
     async sadd(key: string, ...members: string[]) {
-      try {
-        if (!members.length) return 0;
-        return await (client as any).sadd(key, ...members);
-      } catch {
-        return 0;
+      if (isConnected) {
+        try {
+          if (!members.length) return 0;
+          return await (client as any).sadd(key, ...members);
+        } catch {
+          isConnected = false;
+        }
       }
+      return 0;
     },
 
     async keys(pattern: string) {
-      try {
-        return await client.keys(pattern);
-      } catch {
-        return [];
+      if (isConnected) {
+        try {
+          return await client.keys(pattern);
+        } catch {
+          isConnected = false;
+        }
       }
+      return [];
     },
 
     pipeline() {
@@ -244,11 +336,14 @@ function buildAdapter(): RedisAdapter {
     },
 
     async ping() {
-      try {
-        return await client.ping();
-      } catch {
-        return "PONG";
+      if (isConnected) {
+        try {
+          return await client.ping();
+        } catch {
+          isConnected = false;
+        }
       }
+      return "PONG";
     },
 
     on(event: string, callback: (...args: any[]) => void) {

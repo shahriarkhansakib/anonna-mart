@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { CLOUDINARY_FALLBACK } from "@/lib/constants";
 
-const hero = CLOUDINARY_FALLBACK.authHero || "/auth-hero.jpg";
+const hero = CLOUDINARY_FALLBACK.authHero;
 
 import { GrowMateMascot } from "@/components/GrowMateMascot";
 import { Button } from "@/components/ui/button";

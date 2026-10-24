@@ -77,7 +77,7 @@ export function GrowMateMascot({ className }: { className?: string }) {
         className="relative w-full h-full"
       >
         <img
-          src={CLOUDINARY_FALLBACK.mascot || "/growmate-mascot.png"}
+          src={CLOUDINARY_FALLBACK.mascot}
           alt="GrowMate Mascot"
           className="w-full h-full object-contain drop-shadow-md"
           draggable={false}
